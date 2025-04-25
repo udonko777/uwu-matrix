@@ -1,12 +1,12 @@
 {
-  "name": "vite-vanilla-ts-lib-starter",
+  "name": "uwu-matrix",
   "private": true,
-  "version": "0.0.5",
-  "module": "./dist/vite-vanilla-ts-lib-starter.js",
+  "version": "0.0.0",
+  "module": "./dist/uwu-matrix.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/vite-vanilla-ts-lib-starter.js"
+      "import": "./dist/uwu-matrix.js"
     },
     "./dist/": {
       "import": "./dist/"
