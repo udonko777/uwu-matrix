@@ -132,9 +132,9 @@ describe("Matrix.multiplyMatrix", () => {
       [3, 2, 1],
     ]);
     const result = new DynamicMatrix([
-      [30, 24, 18],
-      [84, 69, 54],
-      [138, 114, 90],
+      [90, 114, 138],
+      [54, 69, 84],
+      [18, 24, 30],
     ]);
     a.multiplyMatrix(b);
     expect(a.getValue()).toEqual(result.getValue());
@@ -151,8 +151,22 @@ describe("Matrix.multiplyMatrix", () => {
       [11, 12],
     ]);
     const result = new DynamicMatrix([
-      [58, 64],
-      [139, 154],
+      [39, 54, 69],
+      [49, 68, 87],
+      [59, 82, 105],
+    ]);
+    a.multiplyMatrix(b);
+    expect(a.getValue()).toEqual(result.getValue());
+  });
+
+  it("multiplies a 4x1 matrix with a 1x4 matrix correctly", () => {
+    const a = new DynamicMatrix([[1], [2], [3], [4]]);
+    const b = new DynamicMatrix([[5, 7, 2, 1]]);
+    const result = new DynamicMatrix([
+      [5, 10, 15, 20],
+      [7, 14, 21, 28],
+      [2, 4, 6, 8],
+      [1, 2, 3, 4],
     ]);
     a.multiplyMatrix(b);
     expect(a.getValue()).toEqual(result.getValue());
