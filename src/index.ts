@@ -1,3 +1,3 @@
 import "./style.css";
 
-export { Matrix } from "./matrix";
+export { DynamicMatrix as Matrix } from "./matrix";

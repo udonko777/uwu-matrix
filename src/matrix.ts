@@ -6,12 +6,13 @@ const is2dNumberArray = (value: unknown): value is number[][] => {
  * 任意のサイズのmutableな行列
  * 一旦、3*3より小さな行列のみ対応とする
  */
-export class Matrix {
+export class DynamicMatrix {
+  /** column-major order */
   private value: number[];
 
-  /** 行(横向き)の長さ */
+  /** 行の長さ(横に並んだ数字が縦にいくつあるか) */
   private rowLength: number;
-  /** 列(縦向き)の長さ */
+  /** 列の長さ(縦に並んだ数字が横にいくつあるか) */
   private columnLength: number;
 
   /**
@@ -26,31 +27,67 @@ export class Matrix {
     this.value = columnMajor.flat();
   }
 
-  public add(other: Matrix): void {
-    if (!Matrix.sameSize(this, other)) {
+  public add(other: DynamicMatrix): void {
+    if (!DynamicMatrix.sameSize(this, other)) {
       throw new Error("Matrix size mismatch: cannot add matrices of different sizes");
     }
     this.value = this.value.map((value, index) => value + other.value[index]);
   }
 
-  public subTract(other: Matrix): void {
-    if (!Matrix.sameSize(this, other)) {
+  public subTract(other: DynamicMatrix): void {
+    if (!DynamicMatrix.sameSize(this, other)) {
       throw new Error("Matrix size mismatch: cannot add matrices of different sizes");
     }
     this.value = this.value.map((value, index) => value - other.value[index]);
+  }
+
+  public multiplyScalar(scalar: number) {
+    this.value = this.value.map(value => value * scalar);
+  }
+
+  public multiplyMatrix(other: DynamicMatrix) {
+    if (this.columnLength !== other.rowLength) {
+      throw new Error("Matrix size mismatch: cannot multiply matrices with incompatible sizes");
+    }
+
+    const result: number[] = [];
+
+    for (let col = 0; col < this.columnLength; col++) {
+      for (let row = 0; row < other.rowLength; row++) {
+        let sum = 0;
+        for (let k = 0; k < this.columnLength; k++) {
+          sum += this.getAt(k, row) * other.getAt(col, k);
+        }
+        result.push(sum);
+      }
+    }
+
+    this.value = result;
+    this.columnLength = other.columnLength;
+  }
+
+  /**
+   * 0ベースで列と行を指定して値を得る。 WebGLの為に***列番号を先に指定する設計になっています***
+   * @param columnIndex 何列目の値が必要か
+   * @param rowIndex 何行目の値が必要か
+   */
+  public getAt(columnIndex: number, rowIndex: number) {
+    if (columnIndex < 0 || columnIndex >= this.columnLength) {
+      throw new RangeError(`columnIndex ${columnIndex} is out of bounds (0-${this.columnLength - 1})`);
+    }
+    if (rowIndex < 0 || rowIndex >= this.rowLength) {
+      throw new RangeError(`rowIndex ${rowIndex} is out of bounds (0-${this.rowLength - 1})`);
+    }
+    return this.value[columnIndex * this.columnLength + rowIndex];
   }
 
   public getValue(): number[] {
     return this.value;
   }
 
-  public static sameSize(a: Matrix, b: Matrix): boolean {
+  public static sameSize(a: DynamicMatrix, b: DynamicMatrix): boolean {
     return a.rowLength === b.rowLength && a.columnLength === b.columnLength;
   }
-
-  // TODO: multiplyScalar(scalar: number) — スカラー倍
-
-  // TODO: multiplyMatrix(other: Matrix) — 行列同士の積（サイズ検証あり）
 
   // TODO: transpose() — 転置行列を返す
 
