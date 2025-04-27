@@ -166,4 +166,38 @@ describe("Matrix.multiplyMatrix", () => {
     const b = new DynamicMatrix([[1, 2, 3]]);
     expect(() => a.multiplyMatrix(b)).toThrow("Matrix size mismatch: cannot multiply matrices with incompatible sizes");
   });
+
+  describe("Matrix.generateClone", () => {
+    it("creates a deep clone of a 2x2 matrix", () => {
+      const a = new DynamicMatrix([
+        [1, 2],
+        [3, 4],
+      ]);
+      const clone = a.generateClone();
+      expect(clone.getValue()).toEqual(a.getValue());
+      expect(clone).not.toBe(a);
+    });
+
+    it("creates a deep clone of a 3x3 matrix", () => {
+      const a = new DynamicMatrix([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ]);
+      const clone = a.generateClone();
+      expect(clone.getValue()).toEqual(a.getValue());
+      expect(clone).not.toBe(a);
+    });
+
+    it("modifying the clone does not affect the original matrix", () => {
+      const a = new DynamicMatrix([
+        [1, 2],
+        [3, 4],
+      ]);
+      const clone = a.generateClone();
+      clone.multiplyScalar(2);
+      expect(clone.getValue()).toEqual([2, 4, 6, 8]);
+      expect(a.getValue()).toEqual([1, 2, 3, 4]);
+    });
+  });
 });

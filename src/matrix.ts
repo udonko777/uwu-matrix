@@ -18,7 +18,7 @@ export class DynamicMatrix {
   /**
    * @param columnMajor Column-major order(webGLに合わせ、列の配列を渡して初期化)
    */
-  constructor(columnMajor: ReadonlyArray<ReadonlyArray<number>> | ReadonlyArray<number>) {
+  constructor(columnMajor: ReadonlyArray<ReadonlyArray<number>>) {
     if (!is2dNumberArray(columnMajor)) {
       throw new Error("Matrix must be a 2D array");
     }
@@ -93,8 +93,23 @@ export class DynamicMatrix {
 
   // TODO: toRowMajorArray() — 行優先形式での配列を取得（デバッグや他API用途）
 
-  // TODO: clone() — Matrixのディープコピーを返す
+  /**
+   * インスタンスのDeepCopyを得る。実直な実装のため計算量多い。
+   * @returns インスタンスのDeepCopy
+   */
+  public generateClone(): DynamicMatrix {
+    const initValue: Array<Array<number>> = [[]];
 
+    for (let col = 0; col < this.columnLength; col++) {
+      const rowValue = [];
+      for (let row = 0; row < this.rowLength; row++) {
+        rowValue.push(this.getAt(col, row));
+      }
+      initValue.push(rowValue);
+    }
+
+    return new DynamicMatrix(initValue);
+  }
   // TODO: equals(other: Matrix) — 数値の厳密一致で比較する（テスト用途）
 
   // TODO: static identity(size: number) — 単位行列の生成
