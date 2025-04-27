@@ -10,10 +10,10 @@ export class DynamicMatrix {
   /** column-major order */
   private value: number[];
 
-  /** 行の長さ(横に並んだ数字が縦にいくつあるか) */
-  private rowLength: number;
-  /** 列の長さ(縦に並んだ数字が横にいくつあるか) */
-  private columnLength: number;
+  /** 行の数(横に並んだ数字が縦にいくつあるか) */
+  private rowCount: number;
+  /** 列の数(縦に並んだ数字が横にいくつあるか) */
+  private colCount: number;
 
   /**
    * @param columnMajor Column-major order(webGLに合わせ、列の配列を渡して初期化)
@@ -22,14 +22,14 @@ export class DynamicMatrix {
     if (!is2dNumberArray(columnMajor)) {
       throw new Error("Matrix must be a 2D array");
     }
-    this.rowLength = columnMajor.length;
-    this.columnLength = columnMajor[0].length;
+    this.rowCount = columnMajor[0].length;
+    this.colCount = columnMajor.length;
     this.value = columnMajor.flat();
   }
 
   public add(other: DynamicMatrix): void {
     if (!DynamicMatrix.sameSize(this, other)) {
-      throw new Error("Matrix size mismatch: cannot add matrices of different sizes");
+      throw new Error("Matrix size mismatch: cannot subtract matrices of different sizes");
     }
     this.value = this.value.map((value, index) => value + other.value[index]);
   }
@@ -46,24 +46,24 @@ export class DynamicMatrix {
   }
 
   public multiplyMatrix(other: DynamicMatrix) {
-    if (this.columnLength !== other.rowLength) {
+    if (this.colCount !== other.rowCount) {
       throw new Error("Matrix size mismatch: cannot multiply matrices with incompatible sizes");
     }
 
-    const result: number[] = [];
+    const result: number[] = new Array(this.rowCount * other.colCount).fill(0);
 
-    for (let col = 0; col < this.columnLength; col++) {
-      for (let row = 0; row < other.rowLength; row++) {
+    for (let row = 0; row < this.rowCount; row++) {
+      for (let col = 0; col < other.colCount; col++) {
         let sum = 0;
-        for (let k = 0; k < this.columnLength; k++) {
+        for (let k = 0; k < this.colCount; k++) {
           sum += this.getAt(k, row) * other.getAt(col, k);
         }
-        result.push(sum);
+        result[col * this.rowCount + row] = sum;
       }
     }
 
     this.value = result;
-    this.columnLength = other.columnLength;
+    this.colCount = other.colCount;
   }
 
   /**
@@ -72,13 +72,13 @@ export class DynamicMatrix {
    * @param rowIndex 何行目の値が必要か
    */
   public getAt(columnIndex: number, rowIndex: number) {
-    if (columnIndex < 0 || columnIndex >= this.columnLength) {
-      throw new RangeError(`columnIndex ${columnIndex} is out of bounds (0-${this.columnLength - 1})`);
+    if (columnIndex < 0 || columnIndex >= this.colCount) {
+      throw new RangeError(`columnIndex ${columnIndex} is out of bounds (0-${this.colCount - 1})`);
     }
-    if (rowIndex < 0 || rowIndex >= this.rowLength) {
-      throw new RangeError(`rowIndex ${rowIndex} is out of bounds (0-${this.rowLength - 1})`);
+    if (rowIndex < 0 || rowIndex >= this.rowCount) {
+      throw new RangeError(`rowIndex ${rowIndex} is out of bounds (0-${this.rowCount - 1})`);
     }
-    return this.value[columnIndex * this.columnLength + rowIndex];
+    return this.value[columnIndex * this.rowCount + rowIndex];
   }
 
   public getValue(): number[] {
@@ -86,7 +86,7 @@ export class DynamicMatrix {
   }
 
   public static sameSize(a: DynamicMatrix, b: DynamicMatrix): boolean {
-    return a.rowLength === b.rowLength && a.columnLength === b.columnLength;
+    return a.rowCount === b.rowCount && a.colCount === b.colCount;
   }
 
   // TODO: transpose() — 転置行列を返す
@@ -100,9 +100,9 @@ export class DynamicMatrix {
   public generateClone(): DynamicMatrix {
     const initValue: Array<Array<number>> = [[]];
 
-    for (let col = 0; col < this.columnLength; col++) {
+    for (let col = 0; col < this.colCount; col++) {
       const rowValue = [];
-      for (let row = 0; row < this.rowLength; row++) {
+      for (let row = 0; row < this.rowCount; row++) {
         rowValue.push(this.getAt(col, row));
       }
       initValue.push(rowValue);

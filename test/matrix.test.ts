@@ -140,7 +140,7 @@ describe("Matrix.multiplyMatrix", () => {
     expect(a.getValue()).toEqual(result.getValue());
   });
 
-  it("multiplies a 2x3 matrix with a 3x2 matrix correctly", () => {
+  it("multiplies a 3x2 matrix with a 2x3 matrix correctly", () => {
     const a = new DynamicMatrix([
       [1, 2, 3],
       [4, 5, 6],
@@ -159,7 +159,7 @@ describe("Matrix.multiplyMatrix", () => {
     expect(a.getValue()).toEqual(result.getValue());
   });
 
-  it("multiplies a 4x1 matrix with a 1x4 matrix correctly", () => {
+  it("multiplies a 1x4 matrix with a 4x1 matrix correctly", () => {
     const a = new DynamicMatrix([[1], [2], [3], [4]]);
     const b = new DynamicMatrix([[5, 7, 2, 1]]);
     const result = new DynamicMatrix([
