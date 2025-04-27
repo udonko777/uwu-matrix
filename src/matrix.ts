@@ -33,6 +33,13 @@ export class Matrix {
     this.value = this.value.map((value, index) => value + other.value[index]);
   }
 
+  public subTract(other: Matrix): void {
+    if (!Matrix.sameSize(this, other)) {
+      throw new Error("Matrix size mismatch: cannot add matrices of different sizes");
+    }
+    this.value = this.value.map((value, index) => value - other.value[index]);
+  }
+
   public getValue(): number[] {
     return this.value;
   }
@@ -40,8 +47,6 @@ export class Matrix {
   public static sameSize(a: Matrix, b: Matrix): boolean {
     return a.rowLength === b.rowLength && a.columnLength === b.columnLength;
   }
-
-  // TODO: subtract メソッドの実装（要素ごとの減算）
 
   // TODO: multiplyScalar(scalar: number) — スカラー倍
 
