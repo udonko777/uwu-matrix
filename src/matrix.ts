@@ -12,6 +12,7 @@ export type DynamicMatrix = {
   rowCount: number;
   /** 列の量 */
   colCount: number;
+  [Symbol.toPrimitive]: typeof toString;
 };
 
 const is2dNumberArray = (value: unknown): value is number[][] => {
@@ -21,6 +22,10 @@ const is2dNumberArray = (value: unknown): value is number[][] => {
   return value.every(row => Array.isArray(row) && row.every(cell => typeof cell === "number"));
 };
 
+/**
+ * 引数がDynamicMatrixの型を満たしており、論理的に構造が破綻していないか確かめる
+ * @summary 実用的には、この関数を利用せずとも`type`の値が`"DynamicMatrix"`であれば`DynamicMatrix`としてよい
+ */
 export const isDynamicMatrix = (value: unknown): value is DynamicMatrix => {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -37,6 +42,10 @@ export const isDynamicMatrix = (value: unknown): value is DynamicMatrix => {
   );
 };
 
+/**
+ * サイズ可変な行列を得る
+ * @param columnMajor 列の配列として表現された行列の内容
+ */
 export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<number>>): DynamicMatrix => {
   if (!is2dNumberArray(columnMajor)) {
     throw new Error("Matrix must be a 2D array");
@@ -44,11 +53,27 @@ export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<num
   if (!columnMajor.every(col => col.length === columnMajor[0].length)) {
     throw new Error("All columns must have the same number of rows");
   }
-  const type = TYPE_NAME;
   const rowCount = columnMajor[0].length;
   const colCount = columnMajor.length;
   const value = columnMajor.flat();
-  return { type, value, rowCount, colCount };
+  return { ...getEmpty(), value, rowCount, colCount };
+};
+
+/**
+ * 空のDynamicMatrixを返す\
+ * このファイル内でのみ使用
+ * @example
+ * // ファイル内部で
+ * return { ...getEmpty(), rowCount: 2, colCount: 2 };
+ */
+const getEmpty = (): DynamicMatrix => {
+  return {
+    type: TYPE_NAME,
+    value: [],
+    rowCount: 0,
+    colCount: 0,
+    [Symbol.toPrimitive]: toString,
+  } as DynamicMatrix;
 };
 
 export const getAt = (matrix: DynamicMatrix, columnIndex: number, rowIndex: number): number => {
@@ -83,7 +108,6 @@ export const multiplyMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatri
     throw new Error("Matrix size mismatch");
   }
 
-  const type = TYPE_NAME;
   const value: number[] = new Array(a.rowCount * b.colCount).fill(0);
 
   for (let row = 0; row < a.rowCount; row++) {
@@ -96,7 +120,7 @@ export const multiplyMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatri
     }
   }
 
-  return { type, value, rowCount: a.rowCount, colCount: b.colCount };
+  return { ...getEmpty(), rowCount: a.rowCount, colCount: b.colCount };
 };
 
 export const cloneMatrix = (matrix: DynamicMatrix): DynamicMatrix => {
@@ -141,6 +165,7 @@ export const generateIdentity = (size: number): DynamicMatrix => {
   }
 
   return {
+    ...getEmpty(),
     type: TYPE_NAME,
     rowCount: size,
     colCount: size,
@@ -154,4 +179,17 @@ export const generateIdentity = (size: number): DynamicMatrix => {
 
 // TODO: determinant() — 行列式の計算（サイズ限定で）
 
-// TODO: toString() — 表形式で行列を文字列に変換（デバッグ用）
+/**
+デバッグ用
+*/
+const toString = (matrix: DynamicMatrix): string => {
+  const rows: string[] = [];
+  for (let row = 0; row < matrix.rowCount; row++) {
+    const rowValues: number[] = [];
+    for (let col = 0; col < matrix.colCount; col++) {
+      rowValues.push(matrix.value[col * matrix.rowCount + row]);
+    }
+    rows.push(rowValues.join("\t"));
+  }
+  return rows.join("\n");
+};
