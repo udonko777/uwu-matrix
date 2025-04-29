@@ -37,7 +37,7 @@ export const isDynamicMatrix = (value: unknown): value is DynamicMatrix => {
   );
 };
 
-export function createDynamicMatrix(columnMajor: ReadonlyArray<ReadonlyArray<number>>): DynamicMatrix {
+export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<number>>): DynamicMatrix => {
   if (!is2dNumberArray(columnMajor)) {
     throw new Error("Matrix must be a 2D array");
   }
@@ -49,9 +49,9 @@ export function createDynamicMatrix(columnMajor: ReadonlyArray<ReadonlyArray<num
   const colCount = columnMajor.length;
   const value = columnMajor.flat();
   return { type, value, rowCount, colCount };
-}
+};
 
-export function getAt(matrix: DynamicMatrix, columnIndex: number, rowIndex: number): number {
+export const getAt = (matrix: DynamicMatrix, columnIndex: number, rowIndex: number): number => {
   if (columnIndex < 0 || columnIndex >= matrix.colCount) {
     throw new RangeError(`columnIndex ${columnIndex} is out of bounds`);
   }
@@ -59,26 +59,26 @@ export function getAt(matrix: DynamicMatrix, columnIndex: number, rowIndex: numb
     throw new RangeError(`rowIndex ${rowIndex} is out of bounds`);
   }
   return matrix.value[columnIndex * matrix.rowCount + rowIndex];
-}
+};
 
-export function addMatrix(a: DynamicMatrix, b: DynamicMatrix): DynamicMatrix {
+export const addMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatrix => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v + b.value[i]);
   return { ...a, value };
-}
+};
 
-export function subtractMatrix(a: DynamicMatrix, b: DynamicMatrix): DynamicMatrix {
+export const subtractMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatrix => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v - b.value[i]);
   return { ...a, value };
-}
+};
 
-export function multiplyScalar(matrix: DynamicMatrix, scalar: number): DynamicMatrix {
+export const multiplyScalar = (matrix: DynamicMatrix, scalar: number): DynamicMatrix => {
   const value = matrix.value.map(v => v * scalar);
   return { ...matrix, value };
-}
+};
 
-export function multiplyMatrix(a: DynamicMatrix, b: DynamicMatrix): DynamicMatrix {
+export const multiplyMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatrix => {
   if (a.colCount !== b.rowCount) {
     throw new Error("Matrix size mismatch");
   }
@@ -97,28 +97,28 @@ export function multiplyMatrix(a: DynamicMatrix, b: DynamicMatrix): DynamicMatri
   }
 
   return { type, value, rowCount: a.rowCount, colCount: b.colCount };
-}
+};
 
-export function cloneMatrix(matrix: DynamicMatrix): DynamicMatrix {
+export const cloneMatrix = (matrix: DynamicMatrix): DynamicMatrix => {
   return { ...matrix, value: [...matrix.value] };
-}
+};
 
-export function equalsMatrix(a: DynamicMatrix, b: DynamicMatrix): boolean {
+export const equalsMatrix = (a: DynamicMatrix, b: DynamicMatrix): boolean => {
   if (a.rowCount !== b.rowCount && a.colCount !== b.colCount) {
     return false;
   }
   return a.value.every((v, i) => v === b.value[i]);
-}
+};
 
-export function sameSize(a: DynamicMatrix, b: DynamicMatrix): boolean {
+export const sameSize = (a: DynamicMatrix, b: DynamicMatrix): boolean => {
   return a.rowCount === b.rowCount && a.colCount === b.colCount;
-}
+};
 
-function assertSameSize(a: DynamicMatrix, b: DynamicMatrix): void {
+const assertSameSize = (a: DynamicMatrix, b: DynamicMatrix): void => {
   if (!sameSize(a, b)) {
     throw new Error("Matrix size mismatch");
   }
-}
+};
 
 /**
    * TODO 単位行列の生成
@@ -126,15 +126,15 @@ function assertSameSize(a: DynamicMatrix, b: DynamicMatrix): void {
   public static identity(size: number) {
     const result: number[] = new Array(Math.pow(size, 2)).fill(0);
 
-    for (let col = 0; col < size; col++) {
-      for (let row = 0; row < size; row++) {
-        if (col === row) {
-          result[col * size + row] = 1;
-        } else {
-          result[col * size + row] = 0;
-        }
+  for (let col = 0; col < size; col++) {
+    for (let row = 0; row < size; row++) {
+      if (col === row) {
+        result[col * size + row] = 1;
+      } else {
+        result[col * size + row] = 0;
       }
     }
+  }
 
     return result;
   } */
