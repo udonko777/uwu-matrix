@@ -121,10 +121,10 @@ const assertSameSize = (a: DynamicMatrix, b: DynamicMatrix): void => {
 };
 
 /**
-   * TODO 単位行列の生成
-
-  public static identity(size: number) {
-    const result: number[] = new Array(Math.pow(size, 2)).fill(0);
+  単位行列の生成
+*/
+export const generateIdentity = (size: number): DynamicMatrix => {
+  const result: number[] = new Array(size * size).fill(0);
 
   for (let col = 0; col < size; col++) {
     for (let row = 0; row < size; row++) {
@@ -136,8 +136,13 @@ const assertSameSize = (a: DynamicMatrix, b: DynamicMatrix): void => {
     }
   }
 
-    return result;
-  } */
+  return {
+    type: TYPE_NAME,
+    rowCount: size,
+    colCount: size,
+    value: result,
+  };
+};
 
 // TODO: static fromRowMajor(rowMajor: number[][]) — 行優先形式からの生成
 
