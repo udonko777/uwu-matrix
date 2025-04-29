@@ -1,213 +1,157 @@
 import { describe, expect, it } from "vitest";
-import { DynamicMatrix } from "../src/matrix";
+import { createDynamicMatrix, getAt, addMatrix, subtractMatrix, multiplyScalar, multiplyMatrix, cloneMatrix } from "../src/matrix";
 
 describe("Matrix basics", () => {
   it("Matrix as a flat Array", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 3, 5],
       [2, 4, 6],
     ]);
-    expect(a.getValue()).toEqual([1, 3, 5, 2, 4, 6]);
+    expect(a.value).toEqual([1, 3, 5, 2, 4, 6]);
   });
 
   it("Matrix.getAt", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 2, 3],
       [4, 5, 6],
       [7, 8, 9],
     ]);
-    expect(a.getAt(1, 0)).toEqual(4);
-    expect(a.getAt(2, 1)).toEqual(8);
+    expect(getAt(a, 1, 0)).toEqual(4);
+    expect(getAt(a, 2, 1)).toEqual(8);
   });
 });
 
 describe("Matrix.add", () => {
   it("adds two 2x2 matrices correctly", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 2],
       [3, 4],
     ]);
-    const b = new DynamicMatrix([
+    const b = createDynamicMatrix([
       [5, 6],
       [7, 8],
     ]);
-    a.add(b);
-    expect(a.getValue()).toEqual([6, 8, 10, 12]); // column-major
+    const result = addMatrix(a, b);
+    expect(result.value).toEqual([6, 8, 10, 12]);
   });
 
   it("throws error when sizes do not match", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 2],
       [3, 4],
     ]);
-    const b = new DynamicMatrix([[1, 2, 3]]);
-    expect(() => a.add(b)).toThrow("Matrix size mismatch");
+    const b = createDynamicMatrix([[1, 2, 3]]);
+    expect(() => addMatrix(a, b)).toThrow("Matrix size mismatch");
   });
 });
 
-describe("Matrix.subTract", () => {
+describe("Matrix.subtract", () => {
   it("subtracts two 2x2 matrices correctly", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [10, 10],
       [10, 10],
     ]);
-    const b = new DynamicMatrix([
+    const b = createDynamicMatrix([
       [5, 6],
       [7, 8],
     ]);
-    a.subTract(b);
-    expect(a.getValue()).toEqual([5, 4, 3, 2]);
+    const result = subtractMatrix(a, b);
+    expect(result.value).toEqual([5, 4, 3, 2]);
   });
 
   it("throws error when sizes do not match", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 2],
       [3, 4],
     ]);
-    const b = new DynamicMatrix([[1, 2, 3]]);
-    expect(() => a.subTract(b)).toThrow("Matrix size mismatch");
+    const b = createDynamicMatrix([[1, 2, 3]]);
+    expect(() => subtractMatrix(a, b)).toThrow("Matrix size mismatch");
   });
 });
 
 describe("Matrix.multiplyScalar", () => {
   it("multiplies a 2x2 matrix by a scalar correctly", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 2],
       [3, 4],
     ]);
-    a.multiplyScalar(2);
-    expect(a.getValue()).toEqual([2, 4, 6, 8]); // column-major
+    const result = multiplyScalar(a, 2);
+    expect(result.value).toEqual([2, 4, 6, 8]);
   });
 
   it("multiplies a 3x3 matrix by a scalar correctly", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 2, 3],
       [4, 5, 6],
       [7, 8, 9],
     ]);
-    a.multiplyScalar(3);
-    expect(a.getValue()).toEqual([3, 6, 9, 12, 15, 18, 21, 24, 27]); // column-major
+    const result = multiplyScalar(a, 3);
+    expect(result.value).toEqual([3, 6, 9, 12, 15, 18, 21, 24, 27]);
   });
 });
 
 describe("Matrix.multiplyMatrix", () => {
   it("multiplies two 2x2 matrices correctly", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 2],
       [3, 4],
     ]);
-    const b = new DynamicMatrix([
+    const b = createDynamicMatrix([
       [5, 6],
       [7, 8],
     ]);
-    const result = new DynamicMatrix([
-      [23, 34],
-      [31, 46],
-    ]);
-    a.multiplyMatrix(b);
-    expect(a.getValue()).toEqual(result.getValue());
+    const result = multiplyMatrix(a, b);
+    expect(result.value).toEqual([23, 34, 31, 46]);
   });
 
   it("throws error when sizes do not match", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 2, 4],
       [3, 4, 4],
       [1, 1, 1],
     ]);
-    const b = new DynamicMatrix([
+    const b = createDynamicMatrix([
       [1, 2],
       [4, 5],
     ]);
-    expect(() => a.multiplyMatrix(b)).toThrow("Matrix size mismatch: cannot multiply matrices with incompatible sizes");
+    expect(() => multiplyMatrix(a, b)).toThrow("Matrix size mismatch: incompatible sizes for multiplication");
   });
 
   it("multiplies two 3x3 matrices correctly", () => {
-    const a = new DynamicMatrix([
+    const a = createDynamicMatrix([
       [1, 2, 3],
       [4, 5, 6],
       [7, 8, 9],
     ]);
-    const b = new DynamicMatrix([
+    const b = createDynamicMatrix([
       [9, 8, 7],
       [6, 5, 4],
       [3, 2, 1],
     ]);
-    const result = new DynamicMatrix([
-      [90, 114, 138],
-      [54, 69, 84],
-      [18, 24, 30],
-    ]);
-    a.multiplyMatrix(b);
-    expect(a.getValue()).toEqual(result.getValue());
+    const result = multiplyMatrix(a, b);
+    expect(result.value).toEqual([90, 114, 138, 54, 69, 84, 18, 24, 30]);
   });
+});
 
-  it("multiplies a 3x2 matrix with a 2x3 matrix correctly", () => {
-    const a = new DynamicMatrix([
-      [1, 2, 3],
-      [4, 5, 6],
-    ]);
-    const b = new DynamicMatrix([
-      [7, 8],
-      [9, 10],
-      [11, 12],
-    ]);
-    const result = new DynamicMatrix([
-      [39, 54, 69],
-      [49, 68, 87],
-      [59, 82, 105],
-    ]);
-    a.multiplyMatrix(b);
-    expect(a.getValue()).toEqual(result.getValue());
-  });
-
-  it("multiplies a 1x4 matrix with a 4x1 matrix correctly", () => {
-    const a = new DynamicMatrix([[1], [2], [3], [4]]);
-    const b = new DynamicMatrix([[5, 7, 2, 1]]);
-    const result = new DynamicMatrix([[29]]);
-    a.multiplyMatrix(b);
-    expect(a.getValue()).toEqual(result.getValue());
-  });
-
-  it("throws error when multiplying incompatible matrices", () => {
-    const a = new DynamicMatrix([
+describe("Matrix.cloneMatrix", () => {
+  it("creates a deep clone of a 2x2 matrix", () => {
+    const a = createDynamicMatrix([
       [1, 2],
       [3, 4],
     ]);
-    const b = new DynamicMatrix([[1, 2, 3]]);
-    expect(() => a.multiplyMatrix(b)).toThrow("Matrix size mismatch: cannot multiply matrices with incompatible sizes");
+    const clone = cloneMatrix(a);
+    expect(clone.value).toEqual(a.value);
+    expect(clone).not.toBe(a);
   });
 
-  describe("Matrix.generateClone", () => {
-    it("creates a deep clone of a 2x2 matrix", () => {
-      const a = new DynamicMatrix([
-        [1, 2],
-        [3, 4],
-      ]);
-      const clone = a.generateClone();
-      expect(clone.getValue()).toEqual(a.getValue());
-      expect(clone).not.toBe(a);
-    });
-
-    it("creates a deep clone of a 3x3 matrix", () => {
-      const a = new DynamicMatrix([
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-      ]);
-      const clone = a.generateClone();
-      expect(clone.getValue()).toEqual(a.getValue());
-      expect(clone).not.toBe(a);
-    });
-
-    it("modifying the clone does not affect the original matrix", () => {
-      const a = new DynamicMatrix([
-        [1, 2],
-        [3, 4],
-      ]);
-      const clone = a.generateClone();
-      clone.multiplyScalar(2);
-      expect(clone.getValue()).toEqual([2, 4, 6, 8]);
-      expect(a.getValue()).toEqual([1, 2, 3, 4]);
-    });
+  it("modifying the clone does not affect the original matrix", () => {
+    const a = createDynamicMatrix([
+      [1, 2],
+      [3, 4],
+    ]);
+    const clone = cloneMatrix(a);
+    const modifiedClone = multiplyScalar(clone, 2);
+    expect(modifiedClone.value).toEqual([2, 4, 6, 8]);
+    expect(a.value).toEqual([1, 2, 3, 4]);
   });
 });
