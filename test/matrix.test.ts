@@ -182,7 +182,6 @@ describe("Matrix.generateIdentity", () => {
 
   it("generates a 4x4 identity matrix", () => {
     const identity = generateIdentity(4);
-    // eslint-disable-next-line prettier/prettier
     expect(identity.value).toEqual([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
     expect(identity.rowCount).toBe(4);
     expect(identity.colCount).toBe(4);
