@@ -7,7 +7,7 @@ const TYPE_NAME = "DynamicMatrix";
 export type DynamicMatrix = {
   type: typeof TYPE_NAME;
   /** column-major order */
-  value: number[] | Float32Array;
+  value: Float32Array;
   /** 行の量 */
   rowCount: number;
   /** 列の量 */
@@ -55,7 +55,7 @@ export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<num
   }
   const rowCount = columnMajor[0].length;
   const colCount = columnMajor.length;
-  const value = columnMajor.flat();
+  const value = new Float32Array(columnMajor.flat());
   return { ...getEmpty(), value, rowCount, colCount };
 };
 
@@ -71,11 +71,11 @@ export const fromRowMajor = (rowMajor: number[][]): DynamicMatrix => {
   }
   const rowCount = rowMajor.length;
   const colCount = rowMajor[0].length;
-  const value: number[] = [];
+  const value = new Float32Array(rowCount * colCount);
 
   for (let col = 0; col < colCount; col++) {
     for (let row = 0; row < rowCount; row++) {
-      value.push(rowMajor[row][col]);
+      value[col * rowCount + row] = rowMajor[row][col];
     }
   }
 
@@ -97,7 +97,7 @@ export const fromRowMajor = (rowMajor: number[][]): DynamicMatrix => {
 const getEmpty = (): DynamicMatrix => {
   return {
     type: TYPE_NAME,
-    value: [],
+    value: new Float32Array(),
     rowCount: 0,
     colCount: 0,
     [Symbol.toPrimitive]: toString,
@@ -136,7 +136,7 @@ export const multiplyMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatri
     throw new Error("Matrix size mismatch");
   }
 
-  const value: number[] = new Array(a.rowCount * b.colCount).fill(0);
+  const value = new Float32Array(a.rowCount * b.colCount).fill(0);
 
   for (let row = 0; row < a.rowCount; row++) {
     for (let col = 0; col < b.colCount; col++) {
@@ -151,8 +151,13 @@ export const multiplyMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatri
   return { ...getEmpty(), value, rowCount: a.rowCount, colCount: b.colCount };
 };
 
+/**
+ * 行列のディープコピーを返す
+ * @param matrix コピーを手に入れたい行列
+ * @returns deep copyされた行列
+ */
 export const cloneMatrix = (matrix: DynamicMatrix): DynamicMatrix => {
-  return { ...matrix, value: [...matrix.value] };
+  return { ...matrix, value: Float32Array.from(matrix.value) };
 };
 
 export const equalsMatrix = (a: DynamicMatrix, b: DynamicMatrix): boolean => {
@@ -180,7 +185,7 @@ export const generateIdentity = (size: number): DynamicMatrix => {
     throw new Error("Matrix size must be greater than 0");
   }
 
-  const result: number[] = new Array(size * size).fill(0);
+  const result = new Float32Array(size * size).fill(0);
 
   for (let col = 0; col < size; col++) {
     for (let row = 0; row < size; row++) {
