@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createDynamicMatrix,
+  fromRowMajor,
   getAt,
   addMatrix,
   subtractMatrix,
@@ -193,5 +194,43 @@ describe("Matrix.generateIdentity", () => {
 
   it("throws an error for negative sizes", () => {
     expect(() => generateIdentity(-3)).toThrow("Matrix size must be greater than 0");
+  });
+});
+
+describe("Matrix.fromRowMajor", () => {
+  it("creates a 2x2 matrix from row-major order", () => {
+    const rowMajor = [
+      [1, 2],
+      [3, 4],
+    ];
+    const matrix = fromRowMajor(rowMajor);
+    expect(matrix.value).toEqual([1, 3, 2, 4]);
+    expect(matrix.rowCount).toBe(2);
+    expect(matrix.colCount).toBe(2);
+  });
+
+  it("creates a 3x3 matrix from row-major order", () => {
+    const rowMajor = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ];
+    const matrix = fromRowMajor(rowMajor);
+    expect(matrix.value).toEqual([1, 4, 7, 2, 5, 8, 3, 6, 9]);
+    expect(matrix.rowCount).toBe(3);
+    expect(matrix.colCount).toBe(3);
+  });
+
+  it("throws an error if rows have inconsistent lengths", () => {
+    const rowMajor = [
+      [1, 2],
+      [3, 4, 5],
+    ];
+    expect(() => fromRowMajor(rowMajor)).toThrow("All rows must have the same number of columns");
+  });
+
+  it("throws an error if input is not a 2D array", () => {
+    const invalidInput = [1, 2, 3] as unknown as number[][];
+    expect(() => fromRowMajor(invalidInput)).toThrow("Input must be a 2D array");
   });
 });

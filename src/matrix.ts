@@ -60,6 +60,34 @@ export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<num
 };
 
 /**
+ * 行優先配列から、列優先行列である`DynamicMatrix`のインスタンスを得る
+ */
+export const fromRowMajor = (rowMajor: number[][]): DynamicMatrix => {
+  if (!is2dNumberArray(rowMajor)) {
+    throw new Error("Input must be a 2D array");
+  }
+  if (!rowMajor.every(row => row.length === rowMajor[0].length)) {
+    throw new Error("All rows must have the same number of columns");
+  }
+  const rowCount = rowMajor.length;
+  const colCount = rowMajor[0].length;
+  const value: number[] = [];
+
+  for (let col = 0; col < colCount; col++) {
+    for (let row = 0; row < rowCount; row++) {
+      value.push(rowMajor[row][col]);
+    }
+  }
+
+  return {
+    ...getEmpty(),
+    value,
+    rowCount,
+    colCount,
+  };
+};
+
+/**
  * 空の`DynamicMatrix`を返す\
  * このファイル内でのみ使用
  * @example
@@ -172,8 +200,6 @@ export const generateIdentity = (size: number): DynamicMatrix => {
     value: result,
   };
 };
-
-// TODO: static fromRowMajor(rowMajor: number[][]) — 行優先形式からの生成
 
 // TODO: inverse() — 逆行列（2x2, 3x3などサイズ固定なら可）
 
