@@ -1,15 +1,41 @@
+const TYPE_NAME = "DynamicMatrix";
+
+/**
+ * サイズが可変である実数の行列\
+ * webGLの使用に合わせ、列優先でデータを持つ
+ */
 export type DynamicMatrix = {
-  type: "DynamicMatrix";
-  value: number[]; // column-major order
+  type: typeof TYPE_NAME;
+  /** column-major order */
+  value: number[] | Float32Array;
+  /** 行の量 */
   rowCount: number;
+  /** 列の量 */
   colCount: number;
 };
 
 const is2dNumberArray = (value: unknown): value is number[][] => {
-  return Array.isArray(value) && value.length > 0 && value.every(row => Array.isArray(row) && row.every(cell => typeof cell === "number"));
+  if (!Array.isArray(value) || value.length <= 0) {
+    return false;
+  }
+  return value.every(row => Array.isArray(row) && row.every(cell => typeof cell === "number"));
 };
 
-const TYPE_NAME = "DynamicMatrix";
+export const isDynamicMatrix = (value: unknown): value is DynamicMatrix => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const matrix = value as Partial<DynamicMatrix>;
+  return (
+    matrix.type === TYPE_NAME &&
+    (Array.isArray(matrix.value) || matrix.value instanceof Float32Array) &&
+    typeof matrix.rowCount === "number" &&
+    typeof matrix.colCount === "number" &&
+    matrix.rowCount > 0 &&
+    matrix.colCount > 0 &&
+    matrix.value.length === matrix.rowCount * matrix.colCount
+  );
+};
 
 export function createDynamicMatrix(columnMajor: ReadonlyArray<ReadonlyArray<number>>): DynamicMatrix {
   if (!is2dNumberArray(columnMajor)) {
