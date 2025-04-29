@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { createDynamicMatrix, getAt, addMatrix, subtractMatrix, multiplyScalar, multiplyMatrix, cloneMatrix } from "../src/matrix";
+import {
+  createDynamicMatrix,
+  getAt,
+  addMatrix,
+  subtractMatrix,
+  multiplyScalar,
+  multiplyMatrix,
+  cloneMatrix,
+  generateIdentity,
+} from "../src/matrix";
 
 describe("Matrix basics", () => {
   it("Matrix as a flat Array", () => {
@@ -153,5 +162,37 @@ describe("Matrix.cloneMatrix", () => {
     const modifiedClone = multiplyScalar(clone, 2);
     expect(modifiedClone.value).toEqual([2, 4, 6, 8]);
     expect(a.value).toEqual([1, 2, 3, 4]);
+  });
+});
+
+describe("Matrix.generateIdentity", () => {
+  it("generates a 2x2 identity matrix", () => {
+    const identity = generateIdentity(2);
+    expect(identity.value).toEqual([1, 0, 0, 1]);
+    expect(identity.rowCount).toBe(2);
+    expect(identity.colCount).toBe(2);
+  });
+
+  it("generates a 3x3 identity matrix", () => {
+    const identity = generateIdentity(3);
+    expect(identity.value).toEqual([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+    expect(identity.rowCount).toBe(3);
+    expect(identity.colCount).toBe(3);
+  });
+
+  it("generates a 4x4 identity matrix", () => {
+    const identity = generateIdentity(4);
+    // eslint-disable-next-line prettier/prettier
+    expect(identity.value).toEqual([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    expect(identity.rowCount).toBe(4);
+    expect(identity.colCount).toBe(4);
+  });
+
+  it("throws an error for size 0", () => {
+    expect(() => generateIdentity(0)).toThrow("Matrix size must be greater than 0");
+  });
+
+  it("throws an error for negative sizes", () => {
+    expect(() => generateIdentity(-3)).toThrow("Matrix size must be greater than 0");
   });
 });

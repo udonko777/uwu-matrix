@@ -124,6 +124,10 @@ const assertSameSize = (a: DynamicMatrix, b: DynamicMatrix): void => {
   単位行列の生成
 */
 export const generateIdentity = (size: number): DynamicMatrix => {
+  if (size < 0) {
+    throw new Error("Matrix size must be greater than 0");
+  }
+
   const result: number[] = new Array(size * size).fill(0);
 
   for (let col = 0; col < size; col++) {
