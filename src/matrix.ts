@@ -111,8 +111,28 @@ export class DynamicMatrix {
     return new DynamicMatrix(initValue);
   }
   // TODO: equals(other: Matrix) — 数値の厳密一致で比較する（テスト用途）
+  public equals(other: DynamicMatrix) {
+    return this.value.every((val, index) => val === other.value[index]);
+  }
 
-  // TODO: static identity(size: number) — 単位行列の生成
+  /**
+   * TODO 単位行列の生成
+   
+  public static identity(size: number) {
+    const result: number[] = new Array(Math.pow(size, 2)).fill(0);
+
+    for (let col = 0; col < size; col++) {
+      for (let row = 0; row < size; row++) {
+        if (col === row) {
+          result[col * size + row] = 1;
+        } else {
+          result[col * size + row] = 0;
+        }
+      }
+    }
+
+    return result;
+  } */
 
   // TODO: static fromRowMajor(rowMajor: number[][]) — 行優先形式からの生成
 
