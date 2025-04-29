@@ -2,7 +2,7 @@ const TYPE_NAME = "DynamicMatrix";
 
 /**
  * サイズが可変である実数の行列\
- * webGLの使用に合わせ、列優先でデータを持つ
+ * webGLの仕様に合わせ、列優先でデータを持つ
  */
 export type DynamicMatrix = {
   type: typeof TYPE_NAME;
@@ -23,7 +23,7 @@ const is2dNumberArray = (value: unknown): value is number[][] => {
 };
 
 /**
- * 引数がDynamicMatrixの型を満たしており、論理的に構造が破綻していないか確かめる
+ * 引数が`DynamicMatrix`型を満たしており、論理的に構造が破綻していないか確かめる
  * @summary 実用的には、この関数を利用せずとも`type`の値が`"DynamicMatrix"`であれば`DynamicMatrix`としてよい
  */
 export const isDynamicMatrix = (value: unknown): value is DynamicMatrix => {
@@ -60,10 +60,10 @@ export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<num
 };
 
 /**
- * 空のDynamicMatrixを返す\
+ * 空の`DynamicMatrix`を返す\
  * このファイル内でのみ使用
  * @example
- * // ファイル内部で
+ * // 空のDynamicMatrixに必要な変更を加えて返す
  * return { ...getEmpty(), rowCount: 2, colCount: 2 };
  */
 const getEmpty = (): DynamicMatrix => {
@@ -120,7 +120,7 @@ export const multiplyMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatri
     }
   }
 
-  return { ...getEmpty(), rowCount: a.rowCount, colCount: b.colCount };
+  return { ...getEmpty(), value, rowCount: a.rowCount, colCount: b.colCount };
 };
 
 export const cloneMatrix = (matrix: DynamicMatrix): DynamicMatrix => {
@@ -148,7 +148,7 @@ const assertSameSize = (a: DynamicMatrix, b: DynamicMatrix): void => {
   単位行列の生成
 */
 export const generateIdentity = (size: number): DynamicMatrix => {
-  if (size < 0) {
+  if (size <= 0) {
     throw new Error("Matrix size must be greater than 0");
   }
 

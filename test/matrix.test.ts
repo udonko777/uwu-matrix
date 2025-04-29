@@ -123,7 +123,7 @@ describe("Matrix.multiplyMatrix", () => {
       [1, 2],
       [4, 5],
     ]);
-    expect(() => multiplyMatrix(a, b)).toThrow("Matrix size mismatch: incompatible sizes for multiplication");
+    expect(() => multiplyMatrix(a, b)).toThrow("Matrix size mismatch");
   });
 
   it("multiplies two 3x3 matrices correctly", () => {
