@@ -23,7 +23,7 @@ const fileName = {
 const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
 
 export default defineConfig({
-  base: "./",
+  base: "`/uwu-matrix/`",
   build: {
     outDir: "./build/dist",
     lib: {
