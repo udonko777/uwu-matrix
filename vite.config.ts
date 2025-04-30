@@ -24,7 +24,7 @@ const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
 const isDemo = process.env.BUILD_DEMO === "true";
 
 export default defineConfig({
-  base: "/",
+  base: "./",
   build: isDemo
     ? {
         outDir: "./build/demo",
