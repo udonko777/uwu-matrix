@@ -21,6 +21,6 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["src"],
+  "include": ["src", "demo/draw-scene.ts", "demo/init-buffers.ts", "demo/webgl-demo.ts"],
   "exclude": ["**/*.test.ts", "node_modules", "test/**", ".history/**"]
 }

@@ -21,18 +21,26 @@ const fileName = {
 };
 
 const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
+const isDemo = process.env.BUILD_DEMO === "true";
 
 export default defineConfig({
-  base: "/uwu-matrix/",
-  build: {
-    outDir: "./build/dist",
-    lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
-      name: getPackageNameCamelCase(),
-      formats,
-      fileName: format => fileName[format],
-    },
-  },
+  base: "/",
+  build: isDemo
+    ? {
+        outDir: "./build/demo",
+        rollupOptions: {
+          input: path.resolve(__dirname, "demo/index.html"),
+        },
+      }
+    : {
+        outDir: "./build/dist",
+        lib: {
+          entry: path.resolve(__dirname, "src/index.ts"),
+          name: getPackageNameCamelCase(),
+          formats,
+          fileName: format => fileName[format],
+        },
+      },
   test: {
     watch: false,
   },
