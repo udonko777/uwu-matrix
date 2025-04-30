@@ -24,7 +24,7 @@ const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
 const isDemo = process.env.BUILD_DEMO === "true";
 
 export default defineConfig({
-  base: "./",
+  base: isDemo ? "/uwu-matrix/" : "./", // GitHub Pages のサブディレクトリに合わせる
   build: isDemo
     ? {
         outDir: "./build/demo",
