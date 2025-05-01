@@ -1,17 +1,17 @@
-const TYPE_NAME = "DynamicMatrix";
+const TYPE_NAME = "f32Matrix";
 
 /**
  * サイズが可変である実数の行列\
  * webGLの仕様に合わせ、列優先でデータを持つ
  */
-export type DynamicMatrix = {
+export type F32Mat<R, C> = {
   type: typeof TYPE_NAME;
   /** column-major order */
   value: Float32Array;
   /** 行の量 */
-  rowCount: number;
+  rowCount: R extends number ? R : never;
   /** 列の量 */
-  colCount: number;
+  colCount: C extends number ? C : never;
   [Symbol.toPrimitive]: typeof toString;
 };
 
@@ -23,17 +23,17 @@ const is2dNumberArray = (value: unknown): value is number[][] => {
 };
 
 /**
- * 引数が`DynamicMatrix`型を満たしており、論理的に構造が破綻していないか確かめる
- * @summary 実用的には、この関数を利用せずとも`type`の値が`"DynamicMatrix"`であれば`DynamicMatrix`としてよい
+ * 引数が`f32Matrix`型を満たしており、論理的に構造が破綻していないか確かめる
+ * @summary 実用的には、この関数を利用せずとも`type`の値が`"f32Matrix"`であれば`f32Matrix`としてよい
  */
-export const isDynamicMatrix = (value: unknown): value is DynamicMatrix => {
+export const isDynamicMatrix = (value: unknown): value is F32Mat<number, number> => {
   if (typeof value !== "object" || value === null) {
     return false;
   }
-  const matrix = value as Partial<DynamicMatrix>;
+  const matrix = value as Partial<F32Mat<number, number>>;
   return (
     matrix.type === TYPE_NAME &&
-    (Array.isArray(matrix.value) || matrix.value instanceof Float32Array) &&
+    matrix.value instanceof Float32Array &&
     typeof matrix.rowCount === "number" &&
     typeof matrix.colCount === "number" &&
     matrix.rowCount > 0 &&
@@ -46,7 +46,7 @@ export const isDynamicMatrix = (value: unknown): value is DynamicMatrix => {
  * サイズ可変な行列を得る
  * @param columnMajor 列の配列として表現された行列の内容
  */
-export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<number>>): DynamicMatrix => {
+export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<number>>): F32Mat<number, number> => {
   if (!is2dNumberArray(columnMajor)) {
     throw new Error("Matrix must be a 2D array");
   }
@@ -60,9 +60,9 @@ export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<num
 };
 
 /**
- * 行優先配列から、列優先行列である`DynamicMatrix`のインスタンスを得る
+ * 行優先配列から、列優先行列である`f32Matrix`のインスタンスを得る
  */
-export const fromRowMajor = (rowMajor: number[][]): DynamicMatrix => {
+export const fromRowMajor = (rowMajor: number[][]): F32Mat<number, number> => {
   if (!is2dNumberArray(rowMajor)) {
     throw new Error("Input must be a 2D array");
   }
@@ -88,23 +88,23 @@ export const fromRowMajor = (rowMajor: number[][]): DynamicMatrix => {
 };
 
 /**
- * 空の`DynamicMatrix`を返す\
+ * 空の`f32Matrix`を返す\
  * このファイル内でのみ使用
  * @example
- * // 空のDynamicMatrixに必要な変更を加えて返す
+ * // 空のf32Matrixに必要な変更を加えて返す
  * return { ...getEmpty(), rowCount: 2, colCount: 2 };
  */
-const getEmpty = (): DynamicMatrix => {
+const getEmpty = (): F32Mat<number, number> => {
   return {
     type: TYPE_NAME,
     value: new Float32Array(),
     rowCount: 0,
     colCount: 0,
     [Symbol.toPrimitive]: toString,
-  } as DynamicMatrix;
+  } as F32Mat<number, number>;
 };
 
-export const getAt = (matrix: DynamicMatrix, columnIndex: number, rowIndex: number): number => {
+export const getAt = (matrix: F32Mat<number, number>, columnIndex: number, rowIndex: number): number => {
   if (columnIndex < 0 || columnIndex >= matrix.colCount) {
     throw new RangeError(`columnIndex ${columnIndex} is out of bounds`);
   }
@@ -114,24 +114,24 @@ export const getAt = (matrix: DynamicMatrix, columnIndex: number, rowIndex: numb
   return matrix.value[columnIndex * matrix.rowCount + rowIndex];
 };
 
-export const addMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatrix => {
+export const addMatrix = (a: F32Mat<number, number>, b: F32Mat<number, number>): F32Mat<number, number> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v + b.value[i]);
   return { ...a, value };
 };
 
-export const subtractMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatrix => {
+export const subtractMatrix = (a: F32Mat<number, number>, b: F32Mat<number, number>): F32Mat<number, number> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v - b.value[i]);
   return { ...a, value };
 };
 
-export const multiplyScalar = (matrix: DynamicMatrix, scalar: number): DynamicMatrix => {
+export const multiplyScalar = (matrix: F32Mat<number, number>, scalar: number): F32Mat<number, number> => {
   const value = matrix.value.map(v => v * scalar);
   return { ...matrix, value };
 };
 
-export const multiplyMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatrix => {
+export const multiplyMatrix = <M extends number, N extends number, P extends number>(a: F32Mat<M, N>, b: F32Mat<N, P>): F32Mat<M, P> => {
   if (a.colCount !== b.rowCount) {
     throw new Error("Matrix size mismatch");
   }
@@ -156,22 +156,22 @@ export const multiplyMatrix = (a: DynamicMatrix, b: DynamicMatrix): DynamicMatri
  * @param matrix コピーを手に入れたい行列
  * @returns deep copyされた行列
  */
-export const cloneMatrix = (matrix: DynamicMatrix): DynamicMatrix => {
+export const cloneMatrix = <T, V>(matrix: F32Mat<T, V>): F32Mat<T, V> => {
   return { ...matrix, value: Float32Array.from(matrix.value) };
 };
 
-export const equalsMatrix = (a: DynamicMatrix, b: DynamicMatrix): boolean => {
-  if (a.rowCount !== b.rowCount && a.colCount !== b.colCount) {
+export const equalsMatrix = (a: F32Mat<number, number>, b: F32Mat<number, number>): boolean => {
+  if (a.rowCount !== b.rowCount || a.colCount !== b.colCount) {
     return false;
   }
   return a.value.every((v, i) => v === b.value[i]);
 };
 
-export const sameSize = (a: DynamicMatrix, b: DynamicMatrix): boolean => {
+export const sameSize = (a: F32Mat<number, number>, b: F32Mat<number, number>): boolean => {
   return a.rowCount === b.rowCount && a.colCount === b.colCount;
 };
 
-const assertSameSize = (a: DynamicMatrix, b: DynamicMatrix): void => {
+const assertSameSize = (a: F32Mat<number, number>, b: F32Mat<number, number>): void => {
   if (!sameSize(a, b)) {
     throw new Error("Matrix size mismatch");
   }
@@ -180,7 +180,7 @@ const assertSameSize = (a: DynamicMatrix, b: DynamicMatrix): void => {
 /**
   単位行列の生成
 */
-export const generateIdentity = (size: number): DynamicMatrix => {
+export const generateIdentity = <T extends number>(size: T): F32Mat<T, T> => {
   if (size <= 0) {
     throw new Error("Matrix size must be greater than 0");
   }
@@ -203,7 +203,7 @@ export const generateIdentity = (size: number): DynamicMatrix => {
     rowCount: size,
     colCount: size,
     value: result,
-  };
+  } as F32Mat<T, T>;
 };
 
 // TODO: inverse() — 逆行列（2x2, 3x3などサイズ固定なら可）
@@ -213,7 +213,7 @@ export const generateIdentity = (size: number): DynamicMatrix => {
 /**
 デバッグ用
 */
-const toString = (matrix: DynamicMatrix): string => {
+const toString = (matrix: F32Mat<unknown, unknown>): string => {
   const rows: string[] = [];
   for (let row = 0; row < matrix.rowCount; row++) {
     const rowValues: number[] = [];

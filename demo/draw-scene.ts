@@ -4,7 +4,7 @@ import { buffers } from "./init-buffers";
 
 // これらの行列演算は、本来はライブラリ側で実装されているべきだが
 // 一旦、デモを動作させる為アプリケーションで実装することにした
-export const translationMatrix = (x: number, y: number, z: number): Matrix.DynamicMatrix => {
+export const translationMatrix = (x: number, y: number, z: number): Matrix.F32Mat<number, number> => {
   const mat = Matrix.generateIdentity(4);
   mat.value[12] = x;
   mat.value[13] = y;
@@ -13,7 +13,7 @@ export const translationMatrix = (x: number, y: number, z: number): Matrix.Dynam
 };
 
 // Z軸回転行列 (4x4)
-export const rotateZMatrix = (rad: number): Matrix.DynamicMatrix => {
+export const rotateZMatrix = (rad: number): Matrix.F32Mat<number, number> => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   return Matrix.fromRowMajor([
@@ -31,7 +31,7 @@ export const rotateZMatrix = (rad: number): Matrix.DynamicMatrix => {
  * @param near 最近接距離（0 より大きい）
  * @param far 最遠距離（near より大きい）
  */
-export const getPerspectiveMatrix = (fovY: number, aspect: number, near: number, far: number): Matrix.DynamicMatrix => {
+export const getPerspectiveMatrix = (fovY: number, aspect: number, near: number, far: number): Matrix.F32Mat<number, number> => {
   const f = 1.0 / Math.tan(fovY / 2);
   const nf = 1 / (near - far);
 
@@ -93,7 +93,7 @@ export const drawScene = (gl: WebGLRenderingContext, programInfo: programInfo, b
   const aspect = glCanvas.clientWidth / glCanvas.clientHeight;
   const zNear = 0.1;
   const zFar = 100.0;
-  let projectionMatrix = Matrix.generateIdentity(4);
+  let projectionMatrix = Matrix.generateIdentity(4) as Matrix.F32Mat<number, number>; //FIX ME
   const perspectiveMatrix = getPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
 
   // 受け取り先を取る
@@ -101,7 +101,7 @@ export const drawScene = (gl: WebGLRenderingContext, programInfo: programInfo, b
   projectionMatrix = Matrix.multiplyMatrix(projectionMatrix, perspectiveMatrix);
 
   // 描写位置をシーンの中央である "identity" ポイントにセットする
-  let modelViewMatrix = Matrix.generateIdentity(4);
+  let modelViewMatrix = Matrix.generateIdentity(4) as Matrix.F32Mat<number, number>; //FIX ME
 
   // そして描写位置を正方形を描写し始めたい位置に少しだけ動かす
   //mat4.translate(modelViewMatrix, modelViewMatrix,[-0.0, 0.0, -6.0],);
