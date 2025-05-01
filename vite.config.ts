@@ -25,7 +25,11 @@ const isDemo = process.env.BUILD_DEMO === "true";
 
 export default defineConfig({
   root: isDemo ? path.resolve(__dirname, "demo") : undefined,
-  base: isDemo ? "/uwu-matrix/" : "./",
+  base: isDemo
+    ? process.env.NODE_ENV === "production"
+      ? "/uwu-matrix/" // GitHub Pages 用
+      : "/" // 開発用
+    : "./",
   build: isDemo
     ? {
         outDir: "./build/demo",

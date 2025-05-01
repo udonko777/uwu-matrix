@@ -44,3 +44,7 @@
 - 透視投影行列（perspective projection matrix）
 - 正射影行列（orthographic projection matrix）
 - 逆行列の計算（dekiruka wakarimasen）
+
+## デバッグ方法
+1. `npm install`
+2. `npm run dev` して `localhost:<port>/demo/index.html` を開く
