@@ -46,7 +46,32 @@ export const getPerspectiveMatrix = (fovY: number, aspect: number, near: number,
   return Matrix.createDynamicMatrix(columnMajor);
 };
 
-export const drawScene = (gl: WebGLRenderingContext, programInfo: programInfo, buffers: buffers) => {
+const setColorAttribute = (gl: WebGLRenderingContext, buffers: buffers, programInfo: programInfo) => {
+  const numComponents = 4;
+  const type = gl.FLOAT;
+  const normalize = false;
+  const stride = 0;
+  const offset = 0;
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+  gl.vertexAttribPointer(programInfo.attribLocations.vertexColor, numComponents, type, normalize, stride, offset);
+  gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+};
+
+// WebGL に、位置バッファーから位置を
+// vertexPosition 属性に引き出す方法を指示する。
+const setPositionAttribute = (gl: WebGLRenderingContext, buffers: buffers, programInfo: programInfo) => {
+  const numComponents = 2; // 反復処理ごとに 2 つの値を取り出す
+  const type = gl.FLOAT; // バッファ内のデータは 32 ビット浮動小数点数
+  const normalize = false; // 正規化なし
+  const stride = 0; // 一組の値から次の値まで何バイトで移動するか
+  // 0 = 上記の type と numComponents を使用
+  const offset = 0; // バッファー内の何バイト目から開始するか
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+  gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, numComponents, type, normalize, stride, offset);
+  gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+};
+
+export const drawScene = (gl: WebGLRenderingContext, programInfo: programInfo, buffers: buffers, squareRotation: number) => {
   gl.clearColor(0.0, 0.0, 0.0, 1.0); // 黒でクリア、完全に不透明
   gl.clearDepth(1.0); // 全てをクリア
   gl.enable(gl.DEPTH_TEST); // 深度テストを有効化
@@ -81,10 +106,12 @@ export const drawScene = (gl: WebGLRenderingContext, programInfo: programInfo, b
   // そして描写位置を正方形を描写し始めたい位置に少しだけ動かす
   //mat4.translate(modelViewMatrix, modelViewMatrix,[-0.0, 0.0, -6.0],);
   modelViewMatrix = Matrix.multiplyMatrix(modelViewMatrix, translationMatrix(-0.0, 0.0, -6.0));
+  modelViewMatrix = Matrix.multiplyMatrix(modelViewMatrix, rotateZMatrix(squareRotation));
 
   // WebGL にどのように座標バッファーから座標を
   // vertexPosition 属性に引き出すか伝える。
   setPositionAttribute(gl, buffers, programInfo);
+  setColorAttribute(gl, buffers, programInfo);
 
   // WebGL に、描画にこのプログラムを使用するよう伝える
   gl.useProgram(programInfo.program);
@@ -101,18 +128,4 @@ export const drawScene = (gl: WebGLRenderingContext, programInfo: programInfo, b
     const vertexCount = 4;
     gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
   }
-};
-
-// WebGL に、位置バッファーから位置を
-// vertexPosition 属性に引き出す方法を指示する。
-const setPositionAttribute = (gl: WebGLRenderingContext, buffers: buffers, programInfo: programInfo) => {
-  const numComponents = 2; // 反復処理ごとに 2 つの値を取り出す
-  const type = gl.FLOAT; // バッファ内のデータは 32 ビット浮動小数点数
-  const normalize = false; // 正規化なし
-  const stride = 0; // 一組の値から次の値まで何バイトで移動するか
-  // 0 = 上記の type と numComponents を使用
-  const offset = 0; // バッファー内の何バイト目から開始するか
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-  gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, numComponents, type, normalize, stride, offset);
-  gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
 };

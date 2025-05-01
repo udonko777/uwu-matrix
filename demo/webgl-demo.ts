@@ -6,26 +6,38 @@
 import { initBuffers } from "./init-buffers";
 import { drawScene } from "./draw-scene";
 
+let squareRotation: number = 0.0;
+let deltaTime: number = 0;
+
 // 頂点シェーダーのプログラム
 const vsSource = `
     attribute vec4 aVertexPosition;
+    attribute vec4 aVertexColor;
+
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
-    void main() {
+
+    varying lowp vec4 vColor;
+
+    void main(void) {
       gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+      vColor = aVertexColor;
     }
   `;
 
 const fsSource = `
-    void main() {
-      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    }
-  `;
+  varying lowp vec4 vColor;
+
+  void main(void) {
+    gl_FragColor = vColor;
+  }
+`;
 
 export type programInfo = {
   program: WebGLProgram;
   attribLocations: {
     vertexPosition: number;
+    vertexColor: number;
   };
   uniformLocations: {
     projectionMatrix: WebGLUniformLocation | null;
@@ -56,10 +68,11 @@ const main = () => {
 
   // シェーダープログラムを使用するために必要な情報をすべて収集する。
   // シェーダープログラムが aVertexPosition に使用している属性を調べ、ユニフォームの位置を調べる。
-  const programInfo: programInfo = {
+  const programInfo = {
     program: shaderProgram,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+      vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
@@ -71,8 +84,20 @@ const main = () => {
   // 構築するルーチンを呼び出す
   const buffers = initBuffers(gl);
 
-  // シーンを描画
-  drawScene(gl, programInfo, buffers);
+  let then = 0;
+
+  // 繰り返しシーンを描画
+  const render = (now: number) => {
+    now *= 0.001; // 秒に変換
+    deltaTime = now - then;
+    then = now;
+
+    drawScene(gl, programInfo, buffers, squareRotation);
+    squareRotation += deltaTime;
+
+    requestAnimationFrame(render);
+  };
+  requestAnimationFrame(render);
 };
 
 window.addEventListener("load", () => main());
