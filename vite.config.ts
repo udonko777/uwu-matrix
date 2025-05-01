@@ -24,12 +24,21 @@ const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
 const isDemo = process.env.BUILD_DEMO === "true";
 
 export default defineConfig({
-  base: isDemo ? "/uwu-matrix/" : "./", // GitHub Pages のサブディレクトリに合わせる
+  root: isDemo ? path.resolve(__dirname, "demo") : undefined,
+  base: isDemo ? "/uwu-matrix/" : "./",
   build: isDemo
     ? {
         outDir: "./build/demo",
         rollupOptions: {
-          input: path.resolve(__dirname, "demo/index.html"),
+          input: {
+            index: path.resolve(__dirname, "demo/index.html"),
+          },
+          output: {
+            entryFileNames: "[name].js",
+            chunkFileNames: "[name].js",
+            assetFileNames: "[name].[ext]",
+            dir: "./build/demo",
+          },
         },
       }
     : {
