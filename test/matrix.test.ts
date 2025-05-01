@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  createDynamicMatrix,
+  fromColumnMajor as createDynamicMatrix,
   fromRowMajor,
   getAt,
   addMatrix,

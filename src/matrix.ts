@@ -23,8 +23,8 @@ const is2dNumberArray = (value: unknown): value is number[][] => {
 };
 
 /**
- * 引数が`f32Matrix`型を満たしており、論理的に構造が破綻していないか確かめる
- * @summary 実用的には、この関数を利用せずとも`type`の値が`"f32Matrix"`であれば`f32Matrix`としてよい
+ * 引数が`F32Mat<number,number>`型を満たしており、論理的に構造が破綻していないか確かめる
+ * @summary 実用的には、この関数を利用せずとも`type`の値が`"f32Matrix"`であれば`F32Mat<number,number>`としてよい
  */
 export const isDynamicMatrix = (value: unknown): value is F32Mat<number, number> => {
   if (typeof value !== "object" || value === null) {
@@ -43,10 +43,10 @@ export const isDynamicMatrix = (value: unknown): value is F32Mat<number, number>
 };
 
 /**
- * サイズ可変な行列を得る
+ * 列優先行列から、f32Matrixのインスタンスを得る。
  * @param columnMajor 列の配列として表現された行列の内容
  */
-export const createDynamicMatrix = (columnMajor: ReadonlyArray<ReadonlyArray<number>>): F32Mat<number, number> => {
+export const fromColumnMajor = (columnMajor: ReadonlyArray<ReadonlyArray<number>>): F32Mat<number, number> => {
   if (!is2dNumberArray(columnMajor)) {
     throw new Error("Matrix must be a 2D array");
   }
@@ -94,15 +94,13 @@ export const fromRowMajor = (rowMajor: number[][]): F32Mat<number, number> => {
  * // 空のf32Matrixに必要な変更を加えて返す
  * return { ...getEmpty(), rowCount: 2, colCount: 2 };
  */
-const getEmpty = (): F32Mat<number, number> => {
-  return {
-    type: TYPE_NAME,
-    value: new Float32Array(),
-    rowCount: 0,
-    colCount: 0,
-    [Symbol.toPrimitive]: toString,
-  } as F32Mat<number, number>;
-};
+const getEmpty = (): F32Mat<number, number> => ({
+  type: TYPE_NAME,
+  value: new Float32Array(),
+  rowCount: 0,
+  colCount: 0,
+  [Symbol.toPrimitive]: toString,
+});
 
 export const getAt = (matrix: F32Mat<number, number>, columnIndex: number, rowIndex: number): number => {
   if (columnIndex < 0 || columnIndex >= matrix.colCount) {
@@ -187,14 +185,8 @@ export const generateIdentity = <T extends number>(size: T): F32Mat<T, T> => {
 
   const result = new Float32Array(size * size).fill(0);
 
-  for (let col = 0; col < size; col++) {
-    for (let row = 0; row < size; row++) {
-      if (col === row) {
-        result[col * size + row] = 1;
-      } else {
-        result[col * size + row] = 0;
-      }
-    }
+  for (let i = 0; i < size; i++) {
+    result[i * size + i] = 1;
   }
 
   return {

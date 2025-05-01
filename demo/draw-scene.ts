@@ -43,7 +43,7 @@ export const getPerspectiveMatrix = (fovY: number, aspect: number, near: number,
     [0, 0, 2 * far * near * nf, 0],
   ];
 
-  return Matrix.createDynamicMatrix(columnMajor);
+  return Matrix.fromColumnMajor(columnMajor);
 };
 
 const setColorAttribute = (gl: WebGLRenderingContext, buffers: buffers, programInfo: programInfo) => {
