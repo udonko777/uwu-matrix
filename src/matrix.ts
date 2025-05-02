@@ -88,6 +88,21 @@ export const fromRowMajor = (rowMajor: number[][]): F32Mat<number, number> => {
 };
 
 /**
+ * F32Matのvalueをrow-majorな一次元配列として取得する。実装時点ではテスト用
+ * @param matrix F32Mat型の行列
+ * @returns row-majorな一次元配列
+ */
+export const toRowMajorArray = (matrix: F32Mat<number, number>): number[] => {
+  const result: number[] = [];
+  for (let row = 0; row < matrix.rowCount; row++) {
+    for (let col = 0; col < matrix.colCount; col++) {
+      result.push(matrix.value[col * matrix.rowCount + row]);
+    }
+  }
+  return result;
+};
+
+/**
  * 空の`f32Matrix`を返す\
  * このファイル内でのみ使用
  * @example
@@ -198,7 +213,107 @@ export const generateIdentity = <T extends number>(size: T): F32Mat<T, T> => {
   } as F32Mat<T, T>;
 };
 
-// TODO: inverse() — 逆行列（2x2, 3x3などサイズ固定なら可）
+/**
+ * 行列の指定した2つの行をスワップする
+ * @param matrix F32Mat型の行列
+ * @param row1 スワップする1つ目の行インデックス
+ * @param row2 スワップする2つ目の行インデックス
+ *
+ */
+const swapRows = (matrix: F32Mat<number, number>, row1: number, row2: number): void => {
+  if (row1 === row2) return;
+  for (let col = 0; col < matrix.colCount; col++) {
+    const temp = matrix.value[col * matrix.rowCount + row1];
+    matrix.value[col * matrix.rowCount + row1] = matrix.value[col * matrix.rowCount + row2];
+    matrix.value[col * matrix.rowCount + row2] = temp;
+  }
+};
+
+/**
+ * 指定された行にスカラー倍された別の行を減算する
+ *
+ * @param matrix - 操作対象の行列。行列は `F32Mat<number, number>` 型で、`value` プロパティに値を格納します。
+ * @param targetRowIndex - 減算先の行のインデックス
+ * @param sourceRowIndex - 減算元の行のインデックス
+ * @param scalar - 減算元の行に掛けるスカラー値
+ *
+ * @example
+ * ```ts
+ * const matrix = {
+ *   value: [1, 2, 3, 4, 5, 6],
+ *   rowCount: 2,
+ *   colCount: 3
+ * };
+ * subtractScaledRow(matrix, 0, 1, 2);
+ * // 結果: matrix.value :  [-7, -8, -9, 4, 5, 6]
+ * ```
+ */
+const subtractScaledRow = (matrix: F32Mat<number, number>, targetRowIndex: number, sourceRowIndex: number, scalar: number) => {
+  for (let col = 0; col < matrix.colCount; col++) {
+    const idxTarget = col * matrix.rowCount + targetRowIndex;
+    const idxSource = col * matrix.rowCount + sourceRowIndex;
+    matrix.value[idxTarget] -= matrix.value[idxSource] * scalar;
+  }
+};
+
+/**
+ * 行列の指定した行をスカラー倍する
+ * @param matrix F32Mat型の行列
+ * @param row スカラー倍する行インデックス
+ * @param scalar スカラー値
+ */
+const scaleRow = (matrix: F32Mat<number, number>, row: number, scalar: number): void => {
+  for (let col = 0; col < matrix.colCount; col++) {
+    matrix.value[col * matrix.rowCount + row] *= scalar;
+  }
+};
+
+/*
+掃き出し法を用いて逆行列を求める
+計算量 O(N^3) の実直な実装
+*/
+export const inverse = <T extends number>(matrix: F32Mat<T, T>): F32Mat<T, T> => {
+  const size = matrix.colCount;
+
+  if (matrix.colCount !== matrix.rowCount) {
+    throw new Error("Matrix size mismatch");
+  }
+  const m = cloneMatrix(matrix);
+  const inv = generateIdentity(matrix.colCount);
+
+  for (let pivot = 0; pivot < size; pivot++) {
+    let pivotValue = getAt(m, pivot, pivot);
+
+    // ピボットが 0 の場合、行をスワップ
+    if (pivotValue === 0) {
+      let swapped = false;
+      for (let i = pivot + 1; i < size; i++) {
+        if (getAt(m, pivot, i) !== 0) {
+          swapRows(m, pivot, i);
+          swapRows(inv, pivot, i);
+          swapped = true;
+          break;
+        }
+      }
+      if (!swapped) {
+        throw new Error(`Matrix is singular: ${matrix}`);
+      }
+      pivotValue = getAt(m, pivot, pivot); // スワップ後にピボット値を再取得
+    }
+
+    scaleRow(m, pivot, 1 / pivotValue);
+    scaleRow(inv, pivot, 1 / pivotValue);
+
+    for (let row = 0; row < size; row++) {
+      if (row === pivot) continue;
+      const factor = getAt(m, pivot, row);
+      subtractScaledRow(m, row, pivot, factor);
+      subtractScaledRow(inv, row, pivot, factor);
+    }
+  }
+
+  return inv;
+};
 
 // TODO: determinant() — 行列式の計算（サイズ限定で）
 
