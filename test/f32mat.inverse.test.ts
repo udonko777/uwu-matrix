@@ -59,6 +59,6 @@ describe("Matrix.inverse", () => {
       [2, 4],
     ]);
 
-    expect(() => inverse(singularMatrix)).toThrow(`Matrix is singular: ${singularMatrix}`);
+    expect(() => inverse(singularMatrix)).toThrow(`Matrix is singular`);
   });
 });

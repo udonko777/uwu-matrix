@@ -12,7 +12,7 @@ export type F32Mat<R, C> = {
   rowCount: R extends number ? R : never;
   /** 列の量 */
   colCount: C extends number ? C : never;
-  [Symbol.toPrimitive]: typeof toString;
+  [Symbol.toPrimitive]?: (hint: string) => string | null;
 };
 
 const is2dNumberArray = (value: unknown): value is number[][] => {
@@ -114,7 +114,7 @@ const getEmpty = (): F32Mat<number, number> => ({
   value: new Float32Array(),
   rowCount: 0,
   colCount: 0,
-  [Symbol.toPrimitive]: toString,
+  [Symbol.toPrimitive]: toPrimitive,
 });
 
 export const getAt = (matrix: F32Mat<number, number>, columnIndex: number, rowIndex: number): number => {
@@ -296,7 +296,7 @@ export const inverse = <T extends number>(matrix: F32Mat<T, T>): F32Mat<T, T> =>
         }
       }
       if (!swapped) {
-        throw new Error(`Matrix is singular: ${matrix}`);
+        throw new Error(`Matrix is singular: ${toString(matrix)}`);
       }
       pivotValue = getAt(m, pivot, pivot); // スワップ後にピボット値を再取得
     }
@@ -330,4 +330,11 @@ const toString = (matrix: F32Mat<unknown, unknown>): string => {
     rows.push(rowValues.join("\t"));
   }
   return rows.join("\n");
+};
+
+const toPrimitive = (hint: string): string | null => {
+  if (hint === "string") {
+    return "[object F32Mat]";
+  }
+  return null;
 };
