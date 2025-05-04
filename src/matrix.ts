@@ -286,19 +286,23 @@ export const inverse = <T extends number>(matrix: F32Mat<T, T>): F32Mat<T, T> =>
 
     // ピボットが 0 の場合、行をスワップ
     if (pivotValue === 0) {
-      let swapped = false;
+      let maxRow = pivot;
+      let maxAbs = Math.abs(getAt(m, pivot, pivot));
       for (let i = pivot + 1; i < size; i++) {
-        if (getAt(m, pivot, i) !== 0) {
-          swapRows(m, pivot, i);
-          swapRows(inv, pivot, i);
-          swapped = true;
-          break;
+        const val = Math.abs(getAt(m, pivot, i));
+        if (val > maxAbs) {
+          maxAbs = val;
+          maxRow = i;
         }
       }
-      if (!swapped) {
+      if (maxAbs === 0) {
         throw new Error(`Matrix is singular: ${toString(matrix)}`);
       }
-      pivotValue = getAt(m, pivot, pivot); // スワップ後にピボット値を再取得
+      if (maxRow !== pivot) {
+        swapRows(m, pivot, maxRow);
+        swapRows(inv, pivot, maxRow);
+      }
+      pivotValue = getAt(m, pivot, pivot);
     }
 
     scaleRow(m, pivot, 1 / pivotValue);
