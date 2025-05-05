@@ -322,7 +322,7 @@ export const inverse = <T extends number>(matrix: F32Mat<T, T>): F32Mat<T, T> =>
 // TODO: determinant() — 行列式の計算（サイズ限定で）
 
 /**
-デバッグ用
+行列をコンソール上で確認しやすいテキストに整形する
 */
 const toString = (matrix: F32Mat<unknown, unknown>): string => {
   const rows: string[] = [];
