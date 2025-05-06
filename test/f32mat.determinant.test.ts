@@ -33,6 +33,16 @@ describe("determinant", () => {
     expect(determinant(matrix)).toBeCloseTo(-306, 4);
   });
 
+  it("should calculate the determinant of a 4x4 matrix", () => {
+    const matrix = fromRowMajor([
+      [3, 1, 1, 2],
+      [5, 1, 3, 4],
+      [2, 0, 1, 0],
+      [1, 3, 2, 1],
+    ]);
+    expect(determinant(matrix)).toBeCloseTo(-22, 4);
+  });
+
   it("should handle a 1x1 matrix", () => {
     const matrix = fromRowMajor([[5]]);
     expect(determinant(matrix)).toBe(5);
@@ -46,5 +56,14 @@ describe("determinant", () => {
     expect(() => determinant(nonSquareMatrix)).toThrowError(
       "Matrix must be square to compute determinant",
     );
+  });
+
+  it("should calculate the determinant of a matrix with decimal values", () => {
+    const matrix = fromRowMajor([
+      [1.5, 2.3, 3.1],
+      [4.2, 5.8, 6.4],
+      [7.7, 8.6, 9.9],
+    ]);
+    expect(determinant(matrix)).toBeCloseTo(-3.267, 5);
   });
 });
