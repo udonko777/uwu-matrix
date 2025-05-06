@@ -209,7 +209,7 @@ describe("Matrix.fromRowMajor", () => {
 
 describe("Matrix.toRowMajorArray", () => {
   it("converts a 2x2 matrix to a row-major array", () => {
-    const matrix = createDynamicMatrix([
+    const matrix = fromRowMajor([
       [1, 2],
       [3, 4],
     ]);
@@ -218,7 +218,7 @@ describe("Matrix.toRowMajorArray", () => {
   });
 
   it("converts a 3x3 matrix to a row-major array", () => {
-    const matrix = createDynamicMatrix([
+    const matrix = fromRowMajor([
       [1, 2, 3],
       [4, 5, 6],
       [7, 8, 9],
@@ -228,25 +228,27 @@ describe("Matrix.toRowMajorArray", () => {
   });
 
   it("handles a 1x3 matrix correctly", () => {
-    const matrix = createDynamicMatrix([[1, 2, 3]]);
+    const matrix = fromRowMajor([[1, 2, 3]]);
     const rowMajorArray = toRowMajorArray(matrix);
     expect(rowMajorArray).toEqual([1, 2, 3]);
   });
 
   it("handles a 3x1 matrix correctly", () => {
-    const matrix = createDynamicMatrix([[1], [2], [3]]);
+    const matrix = fromRowMajor([[1], [2], [3]]);
     const rowMajorArray = toRowMajorArray(matrix);
     expect(rowMajorArray).toEqual([1, 2, 3]);
   });
 
   it("returns an empty array for an empty matrix", () => {
-    const matrix = createDynamicMatrix([]);
+    const matrix = fromRowMajor([]);
     const rowMajorArray = toRowMajorArray(matrix);
     expect(rowMajorArray).toEqual([]);
   });
+});
 
+describe("Matrix.toRowMajor2dArray", () => {
   it("converts a 2x2 matrix to a row-major 2D array", () => {
-    const matrix = createDynamicMatrix([
+    const matrix = fromRowMajor([
       [1, 2],
       [3, 4],
     ]);
@@ -258,7 +260,7 @@ describe("Matrix.toRowMajorArray", () => {
   });
 
   it("converts a 3x3 matrix to a row-major 2D array", () => {
-    const matrix = createDynamicMatrix([
+    const matrix = fromRowMajor([
       [1, 2, 3],
       [4, 5, 6],
       [7, 8, 9],
@@ -272,19 +274,19 @@ describe("Matrix.toRowMajorArray", () => {
   });
 
   it("handles a 1x3 matrix correctly", () => {
-    const matrix = createDynamicMatrix([[1, 2, 3]]);
+    const matrix = fromRowMajor([[1, 2, 3]]);
     const rowMajor2dArray = toRowMajor2dArray(matrix);
     expect(rowMajor2dArray).toEqual([[1, 2, 3]]);
   });
 
   it("handles a 3x1 matrix correctly", () => {
-    const matrix = createDynamicMatrix([[1], [2], [3]]);
+    const matrix = fromRowMajor([[1], [2], [3]]);
     const rowMajor2dArray = toRowMajor2dArray(matrix);
     expect(rowMajor2dArray).toEqual([[1], [2], [3]]);
   });
 
   it("returns an empty 2D array for an empty matrix", () => {
-    const matrix = createDynamicMatrix([]);
+    const matrix = fromRowMajor([]);
     const rowMajor2dArray = toRowMajor2dArray(matrix);
     expect(rowMajor2dArray).toEqual([]);
   });
