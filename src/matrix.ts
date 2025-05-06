@@ -109,6 +109,29 @@ export const toRowMajorArray = (matrix: F32Mat<number, number>): number[] => {
 };
 
 /**
+ * F32MatのValueを行優先の二次元配列として取得する。主にテストケースの作成に使用することを想定
+ * @param matrix
+ * @example
+ * //TODO このサンプルのテスト
+ * const val = matrix.value;
+ * const param = toRowMajor2dArray(val);
+ * const sameMatrix = new F32Mat(matrix.rowCount * matrix.colCount,param);
+ */
+export const toRowMajor2dArray = (
+  matrix: F32Mat<number, number>,
+): number[][] => {
+  const result: number[][] = [];
+  for (let row = 0; row < matrix.rowCount; row++) {
+    const rowArray: number[] = [];
+    for (let col = 0; col < matrix.colCount; col++) {
+      rowArray.push(matrix.value[col * matrix.rowCount + row]);
+    }
+    result.push(rowArray);
+  }
+  return result;
+};
+
+/**
  * 空の`f32Matrix`を返す\
  * このファイル内でのみ使用
  * @example
