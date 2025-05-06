@@ -56,7 +56,7 @@ export default defineConfig({
       },
   test: {
     watch: false,
-    setupFiles: "test/setup.ts", // カスタムマッチャの登録スクリプト
+    setupFiles: "test/setup.ts",
   },
   resolve: {
     alias: {

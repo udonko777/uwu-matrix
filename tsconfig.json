@@ -25,7 +25,9 @@
     "src",
     "demo/draw-scene.ts",
     "demo/init-buffers.ts",
-    "demo/webgl-demo.ts"
+    "demo/webgl-demo.ts",
+    "test",
+    "vitest.d.ts"
   ],
   "exclude": ["**/*.test.ts", "node_modules", "test/**", ".history/**"]
 }
