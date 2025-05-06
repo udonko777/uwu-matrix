@@ -23,19 +23,21 @@ expect.extend({
     epsilon = 1e-6,
   ): ExpectationResult {
     const pass = areMatricesClose(received, expected, epsilon);
-    const { isNot } = this;
+    const { isNot, utils } = this;
+
     return {
       pass,
-      message: () =>
-        pass
+      message: () => {
+        const receivedStr = utils.printReceived(Array.from(received));
+        const expectedStr = utils.printExpected(Array.from(expected));
+        return pass
           ? isNot
-            ? `Expected matrices to not be close, but they are (epsilon=${epsilon}).`
-            : `Expected matrices to be close, and they are (epsilon=${epsilon}).`
-          : isNot
-            ? `Expected matrices to not be close, and they are not (epsilon=${epsilon}).`
-            : `Expected matrices to be close, but they are not (epsilon=${epsilon}).\n\n`,
-      actual: received,
-      expected,
+            ? `Expected matrices not to be close (epsilon=${epsilon}), but they were.`
+            : `Matrices are close (epsilon=${epsilon}).`
+          : `Expected matrices to be close (epsilon=${epsilon}), but they are not.\n\nExpected:\n${expectedStr}\n\nReceived:\n${receivedStr}`;
+      },
+      actual: Array.from(received),
+      expected: Array.from(expected),
     };
   },
 });
