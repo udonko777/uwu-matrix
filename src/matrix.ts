@@ -409,13 +409,14 @@ export const determinant = <T extends number>(matrix: F32Mat<T, T>): number => {
 
   const size = matrix.rowCount;
   const m = cloneMatrix(matrix);
-  let det = 1;
+  let det = 1.0;
 
   for (let pivot = 0; pivot < size; pivot++) {
     let pivotValue = getAt(m, pivot, pivot);
 
-    // ピボットが 0 の場合、行をスワップ
-    if (pivotValue === 0) {
+    // ピボットが (ほぼ) 0 の場合、行をスワップ
+    // 無限ループする可能性がある?
+    if (Math.abs(pivotValue) < 1e-9) {
       let maxRow = pivot;
       let maxAbs = Math.abs(getAt(m, pivot, pivot));
       for (let i = pivot + 1; i < size; i++) {
