@@ -347,7 +347,7 @@ const scaleRow = (
 
 /*
 掃き出し法を用いて逆行列を求める
-計算量 O(N^3) の実直な実装
+計算量 O(N^3) の素朴な実装
 */
 export const inverse = <T extends number>(
   matrix: F32Mat<T, T>,
@@ -398,7 +398,54 @@ export const inverse = <T extends number>(
   return inv;
 };
 
-// TODO: determinant() — 行列式の計算（サイズ限定で）
+/**
+ * 行列式を求める素朴な実装
+ * @param matrix
+ */
+export const determinant = <T extends number>(matrix: F32Mat<T, T>): number => {
+  if (matrix.rowCount !== matrix.colCount) {
+    throw new Error("Matrix must be square to compute determinant");
+  }
+
+  const size = matrix.rowCount;
+  const m = cloneMatrix(matrix);
+  let det = 1;
+
+  for (let pivot = 0; pivot < size; pivot++) {
+    let pivotValue = getAt(m, pivot, pivot);
+
+    // ピボットが 0 の場合、行をスワップ
+    if (pivotValue === 0) {
+      let maxRow = pivot;
+      let maxAbs = Math.abs(getAt(m, pivot, pivot));
+      for (let i = pivot + 1; i < size; i++) {
+        const val = Math.abs(getAt(m, pivot, i));
+        if (val > maxAbs) {
+          maxAbs = val;
+          maxRow = i;
+        }
+      }
+      if (maxAbs === 0) {
+        return 0;
+      }
+      if (maxRow !== pivot) {
+        swapRows(m, pivot, maxRow);
+        det *= -1; // 行をスワップすると符号が反転
+      }
+      pivotValue = getAt(m, pivot, pivot);
+    }
+
+    det *= pivotValue;
+    scaleRow(m, pivot, 1 / pivotValue);
+
+    for (let row = pivot + 1; row < size; row++) {
+      const factor = getAt(m, pivot, row);
+      subtractScaledRow(m, row, pivot, factor);
+    }
+  }
+
+  return det;
+};
 
 /**
 行列をコンソール上で確認しやすいテキストに整形する
