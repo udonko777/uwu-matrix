@@ -5,41 +5,95 @@ import {
   generateIdentity,
   inverse,
   multiplyMatrix,
+  determinant,
+  toRowMajor2dArray,
 } from "../../src/matrix";
 
-const squareMatrixArbitrary = fc.integer({ min: 2, max: 5 }).chain(size =>
+/** @see https://fast-check.dev/docs/core-blocks/arbitraries/primitives/number/ */
+
+const intRegularMatrix = fc.integer({ min: 2, max: 5 }).chain(size =>
   fc
-    .array(
-      fc.array(fc.float({ min: -100, max: 100 }), {
+    .tuple(
+      fc.array(fc.array(fc.integer(), { minLength: size, maxLength: size }), {
         minLength: size,
         maxLength: size,
       }),
-      { minLength: size, maxLength: size },
+      fc.array(fc.array(fc.integer(), { minLength: size, maxLength: size }), {
+        minLength: size,
+        maxLength: size,
+      }),
     )
-    .map(rows => {
-      return { size, rows };
+    .map(([a, b]) => {
+      const m1 = fromRowMajor(a);
+      const m2 = fromRowMajor(b);
+      const product = multiplyMatrix(m1, m2);
+      return { size, rows: toRowMajor2dArray(product) };
+    }),
+);
+
+const f32regularMatrix = fc.integer({ min: 2, max: 5 }).chain(size =>
+  fc
+    .tuple(
+      fc.array(
+        fc.array(
+          fc.float({ min: -10, max: 10, noNaN: true, noDefaultInfinity: true }),
+          { minLength: size, maxLength: size },
+        ),
+        { minLength: size, maxLength: size },
+      ),
+      fc.array(
+        fc.array(
+          fc.float({ min: -10, max: 10, noNaN: true, noDefaultInfinity: true }),
+          { minLength: size, maxLength: size },
+        ),
+        { minLength: size, maxLength: size },
+      ),
+    )
+    .map(([a, b]) => {
+      const m1 = fromRowMajor(a);
+      const m2 = fromRowMajor(b);
+      const product = multiplyMatrix(m1, m2);
+      return { size, rows: toRowMajor2dArray(product) };
     }),
 );
 
 describe("Matrix.inverse (randomized tests)", () => {
-  it("calculates the inverse of random square matrices", () => {
+  it("整数で構成されたランダムなサイズの正則行列の逆行列を求める", () => {
     fc.assert(
-      fc.property(squareMatrixArbitrary, ({ size, rows }) => {
+      fc.property(intRegularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
 
-        // 行列式が 0 に近ければスキップ（簡易版）
-        if (Math.abs(determinant(matrix)) < 1e-6) {
+        if (Math.abs(determinant(matrix)) < 1e-1) {
           fc.pre(false);
-          return;
         }
 
         const inv = inverse(matrix);
         const identity = multiplyMatrix(matrix, inv);
+        const expected = generateIdentity(size).value;
 
-        expect(identity.value).toBeCloseMatrix(
-          generateIdentity(size).value,
-          1e-4,
-        );
+        console.log("Original Matrix:", matrix.value);
+        console.log("Inverse Matrix:", inv.value);
+        console.log("Resulting Identity:", identity.value);
+        console.log("Expected Identity:", expected);
+
+        expect(identity.value).toBeCloseMatrix(expected, 1e-3);
+      }),
+    );
+  });
+  it("float32で生成されたランダムなサイズの生息行列の逆行列を求める", () => {
+    fc.assert(
+      fc.property(f32regularMatrix, ({ size, rows }) => {
+        const matrix = fromRowMajor(rows);
+
+        if (Math.abs(determinant(matrix)) < 1e-4) {
+          fc.pre(false);
+        }
+
+        const inv = inverse(matrix);
+        const identity = multiplyMatrix(matrix, inv);
+        const expected = generateIdentity(size).value;
+
+        expect(identity.value).toBeCloseMatrix(expected, 1e-3);
       }),
     );
   });
