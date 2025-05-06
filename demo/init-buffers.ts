@@ -11,7 +11,10 @@ export const initBuffers = (gl: WebGLRenderingContext) => {
 };
 
 const initColorBuffer = (gl: WebGLRenderingContext) => {
-  const colors = [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0];
+  const colors = [
+    1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+    1.0,
+  ];
 
   const colorBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);

@@ -53,7 +53,9 @@ describe("multiplyMatrix", () => {
 
     expect(result.rowCount).toBe(3);
     expect(result.colCount).toBe(3);
-    expect(Array.from(result.value)).toEqual([27, 61, 95, 30, 68, 106, 33, 75, 117]);
+    expect(Array.from(result.value)).toEqual([
+      27, 61, 95, 30, 68, 106, 33, 75, 117,
+    ]);
   });
 
   it("should throw an error if matrix dimensions are incompatible", () => {

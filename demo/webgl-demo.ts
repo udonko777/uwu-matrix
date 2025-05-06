@@ -75,7 +75,10 @@ const main = () => {
       vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
     },
     uniformLocations: {
-      projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
+      projectionMatrix: gl.getUniformLocation(
+        shaderProgram,
+        "uProjectionMatrix",
+      ),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
     },
   };
@@ -105,7 +108,11 @@ window.addEventListener("load", () => main());
 /**
 シェーダープログラムを初期化し、WebGL にデータの描画方法を教える
 */
-const initShaderProgram = (gl: WebGLRenderingContext, vsSource: string, fsSource: string) => {
+const initShaderProgram = (
+  gl: WebGLRenderingContext,
+  vsSource: string,
+  fsSource: string,
+) => {
   const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
   const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
 
@@ -117,7 +124,9 @@ const initShaderProgram = (gl: WebGLRenderingContext, vsSource: string, fsSource
   gl.linkProgram(shaderProgram);
 
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    alert(`シェーダープログラムを初期化できません: ${gl.getProgramInfoLog(shaderProgram)}`);
+    alert(
+      `シェーダープログラムを初期化できません: ${gl.getProgramInfoLog(shaderProgram)}`,
+    );
     return null;
   }
 
@@ -142,7 +151,9 @@ function loadShader(gl: WebGLRenderingContext, type: GLenum, source: string) {
   // コンパイルが成功したか確認する
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     gl.deleteShader(shader);
-    throw new Error(`シェーダーのコンパイル時にエラーが発生しました: ${gl.getShaderInfoLog(shader)}`);
+    throw new Error(
+      `シェーダーのコンパイル時にエラーが発生しました: ${gl.getShaderInfoLog(shader)}`,
+    );
   }
 
   return shader;

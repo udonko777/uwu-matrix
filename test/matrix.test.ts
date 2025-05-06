@@ -95,7 +95,9 @@ describe("Matrix.multiplyScalar", () => {
       [7, 8, 9],
     ]);
     const result = multiplyScalar(a, 3);
-    expect(result.value).toEqual(new Float32Array([3, 6, 9, 12, 15, 18, 21, 24, 27]));
+    expect(result.value).toEqual(
+      new Float32Array([3, 6, 9, 12, 15, 18, 21, 24, 27]),
+    );
   });
 });
 
@@ -132,24 +134,32 @@ describe("Matrix.generateIdentity", () => {
 
   it("generates a 3x3 identity matrix", () => {
     const identity = generateIdentity(3);
-    expect(identity.value).toEqual(new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]));
+    expect(identity.value).toEqual(
+      new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+    );
     expect(identity.rowCount).toBe(3);
     expect(identity.colCount).toBe(3);
   });
 
   it("generates a 4x4 identity matrix", () => {
     const identity = generateIdentity(4);
-    expect(identity.value).toEqual(new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
+    expect(identity.value).toEqual(
+      new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+    );
     expect(identity.rowCount).toBe(4);
     expect(identity.colCount).toBe(4);
   });
 
   it("throws an error for size 0", () => {
-    expect(() => generateIdentity(0)).toThrow("Matrix size must be greater than 0");
+    expect(() => generateIdentity(0)).toThrow(
+      "Matrix size must be greater than 0",
+    );
   });
 
   it("throws an error for negative sizes", () => {
-    expect(() => generateIdentity(-3)).toThrow("Matrix size must be greater than 0");
+    expect(() => generateIdentity(-3)).toThrow(
+      "Matrix size must be greater than 0",
+    );
   });
 });
 
@@ -182,11 +192,15 @@ describe("Matrix.fromRowMajor", () => {
       [1, 2],
       [3, 4, 5],
     ];
-    expect(() => fromRowMajor(rowMajor)).toThrow("All rows must have the same number of columns");
+    expect(() => fromRowMajor(rowMajor)).toThrow(
+      "All rows must have the same number of columns",
+    );
   });
 
   it("throws an error if input is not a 2D array", () => {
     const invalidInput = [1, 2, 3] as unknown as number[][];
-    expect(() => fromRowMajor(invalidInput)).toThrow("Input must be a 2D array");
+    expect(() => fromRowMajor(invalidInput)).toThrow(
+      "Input must be a 2D array",
+    );
   });
 });

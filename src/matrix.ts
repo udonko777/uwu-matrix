@@ -19,14 +19,18 @@ const is2dNumberArray = (value: unknown): value is number[][] => {
   if (!Array.isArray(value) || value.length <= 0) {
     return false;
   }
-  return value.every(row => Array.isArray(row) && row.every(cell => typeof cell === "number"));
+  return value.every(
+    row => Array.isArray(row) && row.every(cell => typeof cell === "number"),
+  );
 };
 
 /**
  * 引数が`F32Mat<number,number>`型を満たしており、論理的に構造が破綻していないか確かめる
  * @summary 実用的には、この関数を利用せずとも`type`の値が`"f32Matrix"`であれば`F32Mat<number,number>`としてよい
  */
-export const isDynamicMatrix = (value: unknown): value is F32Mat<number, number> => {
+export const isDynamicMatrix = (
+  value: unknown,
+): value is F32Mat<number, number> => {
   if (typeof value !== "object" || value === null) {
     return false;
   }
@@ -46,7 +50,9 @@ export const isDynamicMatrix = (value: unknown): value is F32Mat<number, number>
  * 列優先行列から、f32Matrixのインスタンスを得る。
  * @param columnMajor 列の配列として表現された行列の内容
  */
-export const fromColumnMajor = (columnMajor: ReadonlyArray<ReadonlyArray<number>>): F32Mat<number, number> => {
+export const fromColumnMajor = (
+  columnMajor: ReadonlyArray<ReadonlyArray<number>>,
+): F32Mat<number, number> => {
   if (!is2dNumberArray(columnMajor)) {
     throw new Error("Matrix must be a 2D array");
   }
@@ -117,7 +123,11 @@ const getEmpty = (): F32Mat<number, number> => ({
   [Symbol.toPrimitive]: toPrimitive,
 });
 
-export const getAt = (matrix: F32Mat<number, number>, columnIndex: number, rowIndex: number): number => {
+export const getAt = (
+  matrix: F32Mat<number, number>,
+  columnIndex: number,
+  rowIndex: number,
+): number => {
   if (columnIndex < 0 || columnIndex >= matrix.colCount) {
     throw new RangeError(`columnIndex ${columnIndex} is out of bounds`);
   }
@@ -127,24 +137,40 @@ export const getAt = (matrix: F32Mat<number, number>, columnIndex: number, rowIn
   return matrix.value[columnIndex * matrix.rowCount + rowIndex];
 };
 
-export const addMatrix = (a: F32Mat<number, number>, b: F32Mat<number, number>): F32Mat<number, number> => {
+export const addMatrix = (
+  a: F32Mat<number, number>,
+  b: F32Mat<number, number>,
+): F32Mat<number, number> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v + b.value[i]);
   return { ...a, value };
 };
 
-export const subtractMatrix = (a: F32Mat<number, number>, b: F32Mat<number, number>): F32Mat<number, number> => {
+export const subtractMatrix = (
+  a: F32Mat<number, number>,
+  b: F32Mat<number, number>,
+): F32Mat<number, number> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v - b.value[i]);
   return { ...a, value };
 };
 
-export const multiplyScalar = (matrix: F32Mat<number, number>, scalar: number): F32Mat<number, number> => {
+export const multiplyScalar = (
+  matrix: F32Mat<number, number>,
+  scalar: number,
+): F32Mat<number, number> => {
   const value = matrix.value.map(v => v * scalar);
   return { ...matrix, value };
 };
 
-export const multiplyMatrix = <M extends number, N extends number, P extends number>(a: F32Mat<M, N>, b: F32Mat<N, P>): F32Mat<M, P> => {
+export const multiplyMatrix = <
+  M extends number,
+  N extends number,
+  P extends number,
+>(
+  a: F32Mat<M, N>,
+  b: F32Mat<N, P>,
+): F32Mat<M, P> => {
   if (a.colCount !== b.rowCount) {
     throw new Error("Matrix size mismatch");
   }
@@ -161,7 +187,12 @@ export const multiplyMatrix = <M extends number, N extends number, P extends num
     }
   }
 
-  return { ...getEmpty(), value, rowCount: a.rowCount, colCount: b.colCount };
+  return {
+    ...getEmpty(),
+    value,
+    rowCount: a.rowCount,
+    colCount: b.colCount,
+  };
 };
 
 /**
@@ -173,18 +204,27 @@ export const cloneMatrix = <T, V>(matrix: F32Mat<T, V>): F32Mat<T, V> => {
   return { ...matrix, value: Float32Array.from(matrix.value) };
 };
 
-export const equalsMatrix = (a: F32Mat<number, number>, b: F32Mat<number, number>): boolean => {
+export const equalsMatrix = (
+  a: F32Mat<number, number>,
+  b: F32Mat<number, number>,
+): boolean => {
   if (a.rowCount !== b.rowCount || a.colCount !== b.colCount) {
     return false;
   }
   return a.value.every((v, i) => v === b.value[i]);
 };
 
-export const sameSize = (a: F32Mat<number, number>, b: F32Mat<number, number>): boolean => {
+export const sameSize = (
+  a: F32Mat<number, number>,
+  b: F32Mat<number, number>,
+): boolean => {
   return a.rowCount === b.rowCount && a.colCount === b.colCount;
 };
 
-const assertSameSize = (a: F32Mat<number, number>, b: F32Mat<number, number>): void => {
+const assertSameSize = (
+  a: F32Mat<number, number>,
+  b: F32Mat<number, number>,
+): void => {
   if (!sameSize(a, b)) {
     throw new Error("Matrix size mismatch");
   }
@@ -220,11 +260,16 @@ export const generateIdentity = <T extends number>(size: T): F32Mat<T, T> => {
  * @param row2 スワップする2つ目の行インデックス
  *
  */
-const swapRows = (matrix: F32Mat<number, number>, row1: number, row2: number): void => {
+const swapRows = (
+  matrix: F32Mat<number, number>,
+  row1: number,
+  row2: number,
+): void => {
   if (row1 === row2) return;
   for (let col = 0; col < matrix.colCount; col++) {
     const temp = matrix.value[col * matrix.rowCount + row1];
-    matrix.value[col * matrix.rowCount + row1] = matrix.value[col * matrix.rowCount + row2];
+    matrix.value[col * matrix.rowCount + row1] =
+      matrix.value[col * matrix.rowCount + row2];
     matrix.value[col * matrix.rowCount + row2] = temp;
   }
 };
@@ -248,7 +293,12 @@ const swapRows = (matrix: F32Mat<number, number>, row1: number, row2: number): v
  * // 結果: matrix.value :  [-7, -8, -9, 4, 5, 6]
  * ```
  */
-const subtractScaledRow = (matrix: F32Mat<number, number>, targetRowIndex: number, sourceRowIndex: number, scalar: number) => {
+const subtractScaledRow = (
+  matrix: F32Mat<number, number>,
+  targetRowIndex: number,
+  sourceRowIndex: number,
+  scalar: number,
+) => {
   for (let col = 0; col < matrix.colCount; col++) {
     const idxTarget = col * matrix.rowCount + targetRowIndex;
     const idxSource = col * matrix.rowCount + sourceRowIndex;
@@ -262,7 +312,11 @@ const subtractScaledRow = (matrix: F32Mat<number, number>, targetRowIndex: numbe
  * @param row スカラー倍する行インデックス
  * @param scalar スカラー値
  */
-const scaleRow = (matrix: F32Mat<number, number>, row: number, scalar: number): void => {
+const scaleRow = (
+  matrix: F32Mat<number, number>,
+  row: number,
+  scalar: number,
+): void => {
   for (let col = 0; col < matrix.colCount; col++) {
     matrix.value[col * matrix.rowCount + row] *= scalar;
   }
@@ -272,7 +326,9 @@ const scaleRow = (matrix: F32Mat<number, number>, row: number, scalar: number): 
 掃き出し法を用いて逆行列を求める
 計算量 O(N^3) の実直な実装
 */
-export const inverse = <T extends number>(matrix: F32Mat<T, T>): F32Mat<T, T> => {
+export const inverse = <T extends number>(
+  matrix: F32Mat<T, T>,
+): F32Mat<T, T> => {
   const size = matrix.colCount;
 
   if (matrix.colCount !== matrix.rowCount) {

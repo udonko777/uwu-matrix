@@ -7,13 +7,21 @@ interface ExpectationResult {
   expected?: unknown;
 }
 
-const areMatricesClose = (a: ArrayLike<number>, b: ArrayLike<number>, epsilon = 1e-6): boolean => {
+const areMatricesClose = (
+  a: ArrayLike<number>,
+  b: ArrayLike<number>,
+  epsilon = 1e-6,
+): boolean => {
   if (a.length !== b.length) return false;
   return Array.from(a).every((val, i) => Math.abs(val - b[i]) <= epsilon);
 };
 
 expect.extend({
-  toBeCloseMatrix(received: Float32Array, expected: Float32Array, epsilon = 1e-6): ExpectationResult {
+  toBeCloseMatrix(
+    received: Float32Array,
+    expected: Float32Array,
+    epsilon = 1e-6,
+  ): ExpectationResult {
     const pass = areMatricesClose(received, expected, epsilon);
     const { isNot } = this;
     return {
