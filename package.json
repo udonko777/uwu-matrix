@@ -15,7 +15,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "vite --host",
-    "build:lib": "rimraf build/**/* && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts && copyfiles ./package.json build",
+    "build:lib": "rimraf build/**/* && tsc && vite build && copyfiles ./package.json build",
     "build:demo": "BUILD_DEMO=true vite build",
     "build": "npm run build:lib && npm run build:demo",
     "preview": "vite preview --port 8080",
@@ -34,7 +34,6 @@
     "@types/node": "^22.13.5",
     "@vitest/coverage-v8": "^3.0.7",
     "copyfiles": "^2.4.1",
-    "dts-bundle-generator": "^9.5.1",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
