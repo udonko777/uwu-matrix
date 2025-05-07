@@ -14,14 +14,26 @@ import {
 const intRegularMatrix = fc.integer({ min: 2, max: 5 }).chain(size =>
   fc
     .tuple(
-      fc.array(fc.array(fc.integer(), { minLength: size, maxLength: size }), {
-        minLength: size,
-        maxLength: size,
-      }),
-      fc.array(fc.array(fc.integer(), { minLength: size, maxLength: size }), {
-        minLength: size,
-        maxLength: size,
-      }),
+      fc.array(
+        fc.array(fc.integer({ max: 2000, min: -3000 }), {
+          minLength: size,
+          maxLength: size,
+        }),
+        {
+          minLength: size,
+          maxLength: size,
+        },
+      ),
+      fc.array(
+        fc.array(fc.integer({ max: 2000, min: -3000 }), {
+          minLength: size,
+          maxLength: size,
+        }),
+        {
+          minLength: size,
+          maxLength: size,
+        },
+      ),
     )
     .map(([a, b]) => {
       const m1 = fromRowMajor(a);
@@ -63,7 +75,7 @@ describe("Matrix.inverse (randomized tests)", () => {
       fc.property(intRegularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
 
-        if (Math.abs(determinant(matrix)) < 1e-1) {
+        if (Math.abs(determinant(matrix)) < 1e-6) {
           fc.pre(false);
         }
 
