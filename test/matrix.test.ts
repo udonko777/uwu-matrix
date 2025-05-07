@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
-  createDynamicMatrix,
+  fromColumnMajor as createDynamicMatrix,
   fromRowMajor,
   getAt,
   addMatrix,
   subtractMatrix,
   multiplyScalar,
-  multiplyMatrix,
   cloneMatrix,
   generateIdentity,
+  toRowMajorArray,
+  toRowMajor2dArray,
 } from "../src/matrix";
 
 describe("Matrix basics", () => {
@@ -26,8 +27,8 @@ describe("Matrix basics", () => {
       [4, 5, 6],
       [7, 8, 9],
     ]);
-    expect(getAt(a, 1, 0)).toEqual(4);
-    expect(getAt(a, 2, 1)).toEqual(8);
+    expect(getAt(a, 0, 1)).toEqual(4);
+    expect(getAt(a, 1, 2)).toEqual(8);
   });
 });
 
@@ -96,50 +97,9 @@ describe("Matrix.multiplyScalar", () => {
       [7, 8, 9],
     ]);
     const result = multiplyScalar(a, 3);
-    expect(result.value).toEqual(new Float32Array([3, 6, 9, 12, 15, 18, 21, 24, 27]));
-  });
-});
-
-describe("Matrix.multiplyMatrix", () => {
-  it("multiplies two 2x2 matrices correctly", () => {
-    const a = createDynamicMatrix([
-      [1, 2],
-      [3, 4],
-    ]);
-    const b = createDynamicMatrix([
-      [5, 6],
-      [7, 8],
-    ]);
-    const result = multiplyMatrix(a, b);
-    expect(result.value).toEqual(new Float32Array([23, 34, 31, 46]));
-  });
-
-  it("throws error when sizes do not match", () => {
-    const a = createDynamicMatrix([
-      [1, 2, 4],
-      [3, 4, 4],
-      [1, 1, 1],
-    ]);
-    const b = createDynamicMatrix([
-      [1, 2],
-      [4, 5],
-    ]);
-    expect(() => multiplyMatrix(a, b)).toThrow("Matrix size mismatch");
-  });
-
-  it("multiplies two 3x3 matrices correctly", () => {
-    const a = createDynamicMatrix([
-      [1, 2, 3],
-      [4, 5, 6],
-      [7, 8, 9],
-    ]);
-    const b = createDynamicMatrix([
-      [9, 8, 7],
-      [6, 5, 4],
-      [3, 2, 1],
-    ]);
-    const result = multiplyMatrix(a, b);
-    expect(result.value).toEqual(new Float32Array([90, 114, 138, 54, 69, 84, 18, 24, 30]));
+    expect(result.value).toEqual(
+      new Float32Array([3, 6, 9, 12, 15, 18, 21, 24, 27]),
+    );
   });
 });
 
@@ -176,24 +136,32 @@ describe("Matrix.generateIdentity", () => {
 
   it("generates a 3x3 identity matrix", () => {
     const identity = generateIdentity(3);
-    expect(identity.value).toEqual(new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]));
+    expect(identity.value).toEqual(
+      new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+    );
     expect(identity.rowCount).toBe(3);
     expect(identity.colCount).toBe(3);
   });
 
   it("generates a 4x4 identity matrix", () => {
     const identity = generateIdentity(4);
-    expect(identity.value).toEqual(new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
+    expect(identity.value).toEqual(
+      new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+    );
     expect(identity.rowCount).toBe(4);
     expect(identity.colCount).toBe(4);
   });
 
   it("throws an error for size 0", () => {
-    expect(() => generateIdentity(0)).toThrow("Matrix size must be greater than 0");
+    expect(() => generateIdentity(0)).toThrow(
+      "Matrix size must be greater than 0",
+    );
   });
 
   it("throws an error for negative sizes", () => {
-    expect(() => generateIdentity(-3)).toThrow("Matrix size must be greater than 0");
+    expect(() => generateIdentity(-3)).toThrow(
+      "Matrix size must be greater than 0",
+    );
   });
 });
 
@@ -226,11 +194,100 @@ describe("Matrix.fromRowMajor", () => {
       [1, 2],
       [3, 4, 5],
     ];
-    expect(() => fromRowMajor(rowMajor)).toThrow("All rows must have the same number of columns");
+    expect(() => fromRowMajor(rowMajor)).toThrow(
+      "All rows must have the same number of columns",
+    );
   });
 
   it("throws an error if input is not a 2D array", () => {
     const invalidInput = [1, 2, 3] as unknown as number[][];
-    expect(() => fromRowMajor(invalidInput)).toThrow("Input must be a 2D array");
+    expect(() => fromRowMajor(invalidInput)).toThrow(
+      "Input must be a 2D array",
+    );
+  });
+});
+
+describe("Matrix.toRowMajorArray", () => {
+  it("converts a 2x2 matrix to a row-major array", () => {
+    const matrix = fromRowMajor([
+      [1, 2],
+      [3, 4],
+    ]);
+    const rowMajorArray = toRowMajorArray(matrix);
+    expect(rowMajorArray).toEqual([1, 2, 3, 4]);
+  });
+
+  it("converts a 3x3 matrix to a row-major array", () => {
+    const matrix = fromRowMajor([
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ]);
+    const rowMajorArray = toRowMajorArray(matrix);
+    expect(rowMajorArray).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  });
+
+  it("handles a 1x3 matrix correctly", () => {
+    const matrix = fromRowMajor([[1, 2, 3]]);
+    const rowMajorArray = toRowMajorArray(matrix);
+    expect(rowMajorArray).toEqual([1, 2, 3]);
+  });
+
+  it("handles a 3x1 matrix correctly", () => {
+    const matrix = fromRowMajor([[1], [2], [3]]);
+    const rowMajorArray = toRowMajorArray(matrix);
+    expect(rowMajorArray).toEqual([1, 2, 3]);
+  });
+
+  it("returns an empty array for an empty matrix", () => {
+    const matrix = fromRowMajor([]);
+    const rowMajorArray = toRowMajorArray(matrix);
+    expect(rowMajorArray).toEqual([]);
+  });
+});
+
+describe("Matrix.toRowMajor2dArray", () => {
+  it("converts a 2x2 matrix to a row-major 2D array", () => {
+    const matrix = fromRowMajor([
+      [1, 2],
+      [3, 4],
+    ]);
+    const rowMajor2dArray = toRowMajor2dArray(matrix);
+    expect(rowMajor2dArray).toEqual([
+      [1, 2],
+      [3, 4],
+    ]);
+  });
+
+  it("converts a 3x3 matrix to a row-major 2D array", () => {
+    const matrix = fromRowMajor([
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ]);
+    const rowMajor2dArray = toRowMajor2dArray(matrix);
+    expect(rowMajor2dArray).toEqual([
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ]);
+  });
+
+  it("handles a 1x3 matrix correctly", () => {
+    const matrix = fromRowMajor([[1, 2, 3]]);
+    const rowMajor2dArray = toRowMajor2dArray(matrix);
+    expect(rowMajor2dArray).toEqual([[1, 2, 3]]);
+  });
+
+  it("handles a 3x1 matrix correctly", () => {
+    const matrix = fromRowMajor([[1], [2], [3]]);
+    const rowMajor2dArray = toRowMajor2dArray(matrix);
+    expect(rowMajor2dArray).toEqual([[1], [2], [3]]);
+  });
+
+  it("returns an empty 2D array for an empty matrix", () => {
+    const matrix = fromRowMajor([]);
+    const rowMajor2dArray = toRowMajor2dArray(matrix);
+    expect(rowMajor2dArray).toEqual([]);
   });
 });

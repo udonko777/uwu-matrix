@@ -19,8 +19,15 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node", "vitest"]
   },
-  "include": ["src", "demo/draw-scene.ts", "demo/init-buffers.ts", "demo/webgl-demo.ts"],
+  "include": [
+    "src",
+    "demo/draw-scene.ts",
+    "demo/init-buffers.ts",
+    "demo/webgl-demo.ts",
+    "test",
+    "vitest.d.ts"
+  ],
   "exclude": ["**/*.test.ts", "node_modules", "test/**", ".history/**"]
 }
