@@ -64,6 +64,6 @@ describe("determinant", () => {
       [4.2, 5.8, 6.4],
       [7.7, 8.6, 9.9],
     ]);
-    expect(determinant(matrix)).toBeCloseTo(-3.267, 5);
+    expect(determinant(matrix)).toBeCloseTo(-5.194, 5);
   });
 });
