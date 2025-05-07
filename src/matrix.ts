@@ -416,7 +416,7 @@ export const determinant = <T extends number>(matrix: F32Mat<T, T>): number => {
 
     // ピボットが (ほぼ) 0 の場合、行をスワップ
     // 無限ループする可能性がある?
-    if (Math.abs(pivotValue) < 1e-9) {
+    if (Math.abs(pivotValue) < 1e-5) {
       let maxRow = pivot;
       let maxAbs = Math.abs(getAt(m, pivot, pivot));
       for (let i = pivot + 1; i < size; i++) {
