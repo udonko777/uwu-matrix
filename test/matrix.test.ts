@@ -27,8 +27,8 @@ describe("Matrix basics", () => {
       [4, 5, 6],
       [7, 8, 9],
     ]);
-    expect(getAt(a, 1, 0)).toEqual(4);
-    expect(getAt(a, 2, 1)).toEqual(8);
+    expect(getAt(a, 0, 1)).toEqual(4);
+    expect(getAt(a, 1, 2)).toEqual(8);
   });
 });
 

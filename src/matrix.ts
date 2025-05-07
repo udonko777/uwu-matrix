@@ -148,8 +148,8 @@ const getEmpty = (): F32Mat<number, number> => ({
 
 export const getAt = (
   matrix: F32Mat<number, number>,
-  columnIndex: number,
   rowIndex: number,
+  columnIndex: number,
 ): number => {
   if (columnIndex < 0 || columnIndex >= matrix.colCount) {
     throw new RangeError(`columnIndex ${columnIndex} is out of bounds`);
@@ -368,7 +368,7 @@ export const inverse = <T extends number>(
       let maxRow = pivot;
       let maxAbs = Math.abs(getAt(m, pivot, pivot));
       for (let i = pivot + 1; i < size; i++) {
-        const val = Math.abs(getAt(m, pivot, i));
+        const val = Math.abs(getAt(m, i, pivot));
         if (val > maxAbs) {
           maxAbs = val;
           maxRow = i;
@@ -389,7 +389,7 @@ export const inverse = <T extends number>(
 
     for (let row = 0; row < size; row++) {
       if (row === pivot) continue;
-      const factor = getAt(m, pivot, row);
+      const factor = getAt(m, row, pivot);
       subtractScaledRow(m, row, pivot, factor);
       subtractScaledRow(inv, row, pivot, factor);
     }
@@ -420,7 +420,7 @@ export const determinant = <T extends number>(matrix: F32Mat<T, T>): number => {
       let maxRow = pivot;
       let maxAbs = Math.abs(getAt(m, pivot, pivot));
       for (let i = pivot + 1; i < size; i++) {
-        const val = Math.abs(getAt(m, pivot, i));
+        const val = Math.abs(getAt(m, i, pivot));
         if (val > maxAbs) {
           maxAbs = val;
           maxRow = i;
@@ -440,7 +440,7 @@ export const determinant = <T extends number>(matrix: F32Mat<T, T>): number => {
     scaleRow(m, pivot, 1 / pivotValue);
 
     for (let row = pivot + 1; row < size; row++) {
-      const factor = getAt(m, pivot, row);
+      const factor = getAt(m, row, pivot);
       subtractScaledRow(m, row, pivot, factor);
     }
   }
