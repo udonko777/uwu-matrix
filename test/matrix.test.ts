@@ -240,7 +240,7 @@ describe("Matrix.toRowMajorArray", () => {
   });
 
   it("returns an empty array for an empty matrix", () => {
-    const matrix = fromRowMajor([]);
+    const matrix = fromRowMajor([[]]);
     const rowMajorArray = toRowMajorArray(matrix);
     expect(rowMajorArray).toEqual([]);
   });
@@ -339,8 +339,8 @@ describe("Matrix.toRowMajor2dArray", () => {
   });
 
   it("returns an empty 2D array for an empty matrix", () => {
-    const matrix = fromRowMajor([]);
+    const matrix = fromRowMajor([[]]);
     const rowMajor2dArray = toRowMajor2dArray(matrix);
-    expect(rowMajor2dArray).toEqual([]);
+    expect(rowMajor2dArray).toEqual([[]]);
   });
 });
