@@ -203,7 +203,7 @@ describe("Matrix.inverse", () => {
       [4, 5, 6],
     ]);
 
-    expect(() => inverse(nonSquareMatrix)).toThrow("Matrix size mismatch");
+    expect(() => inverse(nonSquareMatrix)).toThrow("Matrix must be square");
   });
 
   it("throws an error for singular matrices", () => {

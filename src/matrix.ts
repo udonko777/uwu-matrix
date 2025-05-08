@@ -353,36 +353,38 @@ export const inverse = <T extends number>(
   matrix: F32Mat<T, T>,
 ): F32Mat<T, T> => {
   const size = matrix.colCount;
-
-  if (matrix.colCount !== matrix.rowCount) {
-    throw new Error("Matrix size mismatch");
+  if (matrix.rowCount !== size) {
+    throw new Error("Matrix must be square");
   }
+
   const m = cloneMatrix(matrix);
-  const inv = generateIdentity(matrix.colCount);
+  const inv = generateIdentity(size);
 
   for (let pivot = 0; pivot < size; pivot++) {
     let pivotValue = getAt(m, pivot, pivot);
 
-    // ピボットが 0 の場合、行をスワップ
-    if (pivotValue === 0) {
-      let maxRow = pivot;
-      let maxAbs = Math.abs(getAt(m, pivot, pivot));
-      for (let i = pivot + 1; i < size; i++) {
-        const val = Math.abs(getAt(m, i, pivot));
-        if (val > maxAbs) {
-          maxAbs = val;
-          maxRow = i;
-        }
+    // 最大の絶対値を持つ行を探す
+    let maxRow = pivot;
+    let maxAbs = Math.abs(getAt(m, pivot, pivot));
+    for (let i = pivot + 1; i < size; i++) {
+      const val = Math.abs(getAt(m, i, pivot));
+      if (val > maxAbs) {
+        maxAbs = val;
+        maxRow = i;
       }
-      if (maxAbs === 0) {
-        throw new Error(`Matrix is singular: ${toString(matrix)}`);
-      }
-      if (maxRow !== pivot) {
-        swapRows(m, pivot, maxRow);
-        swapRows(inv, pivot, maxRow);
-      }
-      pivotValue = getAt(m, pivot, pivot);
     }
+
+    // 特異行列チェック
+    if (maxAbs < 1e-6) {
+      throw new Error("Matrix is singular or nearly singular");
+    }
+
+    if (maxRow !== pivot) {
+      swapRows(m, pivot, maxRow);
+      swapRows(inv, pivot, maxRow);
+    }
+
+    pivotValue = getAt(m, pivot, pivot);
 
     scaleRow(m, pivot, 1 / pivotValue);
     scaleRow(inv, pivot, 1 / pivotValue);
@@ -390,6 +392,7 @@ export const inverse = <T extends number>(
     for (let row = 0; row < size; row++) {
       if (row === pivot) continue;
       const factor = getAt(m, row, pivot);
+      if (Math.abs(factor) < 1e-8) continue;
       subtractScaledRow(m, row, pivot, factor);
       subtractScaledRow(inv, row, pivot, factor);
     }
@@ -441,6 +444,7 @@ export const determinant = <T extends number>(matrix: F32Mat<T, T>): number => {
 
     for (let row = pivot + 1; row < size; row++) {
       const factor = getAt(m, row, pivot);
+      if (Math.abs(factor) < 1e-8) continue;
       subtractScaledRow(m, row, pivot, factor);
     }
   }
@@ -451,7 +455,7 @@ export const determinant = <T extends number>(matrix: F32Mat<T, T>): number => {
 /**
 行列をコンソール上で確認しやすいテキストに整形する
 */
-const toString = (matrix: F32Mat<unknown, unknown>): string => {
+export const toString = (matrix: F32Mat<unknown, unknown>): string => {
   const rows: string[] = [];
   for (let row = 0; row < matrix.rowCount; row++) {
     const rowValues: number[] = [];
