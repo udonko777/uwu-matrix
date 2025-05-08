@@ -21,7 +21,7 @@ describe("Matrix.inverse", () => {
     ]);
     const result = inverse(matrix);
 
-    expect(result.value).toEqual(expectedInverse.value);
+    expect(result.value).toBeCloseMatrix(expectedInverse.value, 9);
   });
 
   it("calculates the inverse of a 3x3 matrix", () => {
