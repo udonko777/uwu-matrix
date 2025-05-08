@@ -18,8 +18,8 @@ const areMatricesClose = (
 
 expect.extend({
   toBeCloseMatrix(
-    received: Float32Array,
-    expected: Float32Array,
+    received: ArrayLike<number>,
+    expected: ArrayLike<number>,
     epsilon = 1e-6,
   ): ExpectationResult {
     const pass = areMatricesClose(received, expected, epsilon);
