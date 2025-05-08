@@ -313,7 +313,7 @@ const swapRows = (
  * // 結果: matrix.value :  [-7, -8, -9, 4, 5, 6]
  * ```
  */
-const subtractScaledRow = (
+export const subtractScaledRow = (
   matrix: f64Mat<number, number>,
   targetRowIndex: number,
   sourceRowIndex: number,
