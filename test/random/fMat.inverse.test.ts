@@ -87,7 +87,7 @@ describe("Matrix.inverse (randomized tests)", () => {
       }),
     );
   });
-  it("float32で生成されたランダムなサイズの生息行列の逆行列を求める", () => {
+  it("float32で生成されたランダムなサイズの正則行列の逆行列を求める", () => {
     fc.assert(
       fc.property(f32regularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
