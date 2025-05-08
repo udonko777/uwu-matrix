@@ -28,9 +28,7 @@ const is2dNumberArray = (value: unknown): value is number[][] => {
  * 引数が`F32Mat<number,number>`型を満たしており、論理的に構造が破綻していないか確かめる
  * @summary 実用的には、この関数を利用せずとも`type`の値が`"f32Matrix"`であれば`F32Mat<number,number>`としてよい
  */
-export const isDynamicMatrix = (
-  value: unknown,
-): value is F32Mat<number, number> => {
+export const isF32Mat = (value: unknown): value is F32Mat<number, number> => {
   if (typeof value !== "object" || value === null) {
     return false;
   }
