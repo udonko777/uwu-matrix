@@ -1,13 +1,13 @@
-const TYPE_NAME = "f32Matrix";
+const TYPE_NAME = "f64Mat";
 
 /**
  * サイズが可変である実数の行列\
  * webGLの仕様に合わせ、列優先でデータを持つ
  */
-export type F32Mat<R, C> = {
+export type f64Mat<R, C> = {
   type: typeof TYPE_NAME;
   /** column-major order */
-  value: Float32Array;
+  value: Float64Array;
   /** 行の量 */
   rowCount: R extends number ? R : never;
   /** 列の量 */
@@ -25,32 +25,31 @@ const is2dNumberArray = (value: unknown): value is number[][] => {
 };
 
 /**
- * 引数が`F32Mat<number,number>`型を満たしており、論理的に構造が破綻していないか確かめる
- * @summary 実用的には、この関数を利用せずとも`type`の値が`"f32Matrix"`であれば`F32Mat<number,number>`としてよい
+ * 引数が`f64Mat<number,number>`型を満たしており、論理的に構造が破綻していないか確かめる
+ * @summary 実用的には、この関数を利用せずとも`type`の値が`"f64Mat"`であれば`f64Mat<number,number>`としてよい
  */
-export const isF32Mat = (value: unknown): value is F32Mat<number, number> => {
+export const isf64Mat = (value: unknown): value is f64Mat<number, number> => {
   if (typeof value !== "object" || value === null) {
     return false;
   }
-  const matrix = value as Partial<F32Mat<number, number>>;
+  const matrix = value as Partial<f64Mat<number, number>>;
   return (
     matrix.type === TYPE_NAME &&
     matrix.value instanceof Float32Array &&
     typeof matrix.rowCount === "number" &&
     typeof matrix.colCount === "number" &&
     matrix.rowCount > 0 &&
-    matrix.colCount > 0 &&
-    matrix.value.length === matrix.rowCount * matrix.colCount
+    matrix.colCount > 0
   );
 };
 
 /**
- * 列優先行列から、f32Matrixのインスタンスを得る。
+ * 列優先行列から、f64Matのインスタンスを得る。
  * @param columnMajor 列の配列として表現された行列の内容
  */
 export const fromColumnMajor = (
   columnMajor: ReadonlyArray<ReadonlyArray<number>>,
-): F32Mat<number, number> => {
+): f64Mat<number, number> => {
   if (!is2dNumberArray(columnMajor)) {
     throw new Error("Matrix must be a 2D array");
   }
@@ -59,14 +58,14 @@ export const fromColumnMajor = (
   }
   const rowCount = columnMajor[0].length;
   const colCount = columnMajor.length;
-  const value = new Float32Array(columnMajor.flat());
+  const value = new Float64Array(columnMajor.flat());
   return { ...getEmpty(), value, rowCount, colCount };
 };
 
 /**
- * 行優先配列から、列優先行列である`f32Matrix`のインスタンスを得る
+ * 行優先配列から、列優先行列である`f64Mat`のインスタンスを得る
  */
-export const fromRowMajor = (rowMajor: number[][]): F32Mat<number, number> => {
+export const fromRowMajor = (rowMajor: number[][]): f64Mat<number, number> => {
   if (!is2dNumberArray(rowMajor)) {
     throw new Error("Input must be a 2D array");
   }
@@ -75,7 +74,7 @@ export const fromRowMajor = (rowMajor: number[][]): F32Mat<number, number> => {
   }
   const rowCount = rowMajor.length;
   const colCount = rowMajor[0].length;
-  const value = new Float32Array(rowCount * colCount);
+  const value = new Float64Array(rowCount * colCount);
 
   for (let col = 0; col < colCount; col++) {
     for (let row = 0; row < rowCount; row++) {
@@ -92,11 +91,11 @@ export const fromRowMajor = (rowMajor: number[][]): F32Mat<number, number> => {
 };
 
 /**
- * F32Matのvalueをrow-majorな一次元配列として取得する。実装時点ではテスト用
- * @param matrix F32Mat型の行列
+ * f64Matのvalueをrow-majorな一次元配列として取得する。実装時点ではテスト用
+ * @param matrix f64Mat型の行列
  * @returns row-majorな一次元配列
  */
-export const toRowMajorArray = (matrix: F32Mat<number, number>): number[] => {
+export const toRowMajorArray = (matrix: f64Mat<number, number>): number[] => {
   const result: number[] = [];
   for (let row = 0; row < matrix.rowCount; row++) {
     for (let col = 0; col < matrix.colCount; col++) {
@@ -107,7 +106,7 @@ export const toRowMajorArray = (matrix: F32Mat<number, number>): number[] => {
 };
 
 /**
- * F32MatのValueを行優先の二次元配列として取得する。主にテストケースの作成に使用することを想定
+ * f64MatのValueを行優先の二次元配列として取得する。主にテストケースの作成に使用することを想定
  * @param matrix
  * @example
  * //TODO このサンプルのテスト
@@ -116,7 +115,7 @@ export const toRowMajorArray = (matrix: F32Mat<number, number>): number[] => {
  * const sameMatrix = new F32Mat(matrix.rowCount * matrix.colCount,param);
  */
 export const toRowMajor2dArray = (
-  matrix: F32Mat<number, number>,
+  matrix: f64Mat<number, number>,
 ): number[][] => {
   const result: number[][] = [];
   for (let row = 0; row < matrix.rowCount; row++) {
@@ -130,22 +129,22 @@ export const toRowMajor2dArray = (
 };
 
 /**
- * 空の`f32Matrix`を返す\
+ * 空の`f64Mat`を返す\
  * このファイル内でのみ使用
  * @example
- * // 空のf32Matrixに必要な変更を加えて返す
+ * // 空のf64Matに必要な変更を加えて返す
  * return { ...getEmpty(), rowCount: 2, colCount: 2 };
  */
-const getEmpty = (): F32Mat<number, number> => ({
+const getEmpty = (): f64Mat<number, number> => ({
   type: TYPE_NAME,
-  value: new Float32Array(),
+  value: new Float64Array(),
   rowCount: 0,
   colCount: 0,
   [Symbol.toPrimitive]: toPrimitive,
 });
 
 export const getAt = (
-  matrix: F32Mat<number, number>,
+  matrix: f64Mat<number, number>,
   rowIndex: number,
   columnIndex: number,
 ): number => {
@@ -159,27 +158,27 @@ export const getAt = (
 };
 
 export const addMatrix = (
-  a: F32Mat<number, number>,
-  b: F32Mat<number, number>,
-): F32Mat<number, number> => {
+  a: f64Mat<number, number>,
+  b: f64Mat<number, number>,
+): f64Mat<number, number> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v + b.value[i]);
   return { ...a, value };
 };
 
 export const subtractMatrix = (
-  a: F32Mat<number, number>,
-  b: F32Mat<number, number>,
-): F32Mat<number, number> => {
+  a: f64Mat<number, number>,
+  b: f64Mat<number, number>,
+): f64Mat<number, number> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v - b.value[i]);
   return { ...a, value };
 };
 
 export const multiplyScalar = (
-  matrix: F32Mat<number, number>,
+  matrix: f64Mat<number, number>,
   scalar: number,
-): F32Mat<number, number> => {
+): f64Mat<number, number> => {
   const value = matrix.value.map(v => v * scalar);
   return { ...matrix, value };
 };
@@ -189,14 +188,14 @@ export const multiplyMatrix = <
   N extends number,
   P extends number,
 >(
-  a: F32Mat<M, N>,
-  b: F32Mat<N, P>,
-): F32Mat<M, P> => {
+  a: f64Mat<M, N>,
+  b: f64Mat<N, P>,
+): f64Mat<M, P> => {
   if (a.colCount !== b.rowCount) {
     throw new Error("Matrix size mismatch");
   }
 
-  const value = new Float32Array(a.rowCount * b.colCount).fill(0);
+  const value = new Float64Array(a.rowCount * b.colCount).fill(0);
 
   for (let row = 0; row < a.rowCount; row++) {
     for (let col = 0; col < b.colCount; col++) {
@@ -221,13 +220,13 @@ export const multiplyMatrix = <
  * @param matrix コピーを手に入れたい行列
  * @returns deep copyされた行列
  */
-export const cloneMatrix = <T, V>(matrix: F32Mat<T, V>): F32Mat<T, V> => {
-  return { ...matrix, value: Float32Array.from(matrix.value) };
+export const cloneMatrix = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
+  return { ...matrix, value: Float64Array.from(matrix.value) };
 };
 
 export const equalsMatrix = (
-  a: F32Mat<number, number>,
-  b: F32Mat<number, number>,
+  a: f64Mat<number, number>,
+  b: f64Mat<number, number>,
 ): boolean => {
   if (a.rowCount !== b.rowCount || a.colCount !== b.colCount) {
     return false;
@@ -236,15 +235,15 @@ export const equalsMatrix = (
 };
 
 export const sameSize = (
-  a: F32Mat<number, number>,
-  b: F32Mat<number, number>,
+  a: f64Mat<number, number>,
+  b: f64Mat<number, number>,
 ): boolean => {
   return a.rowCount === b.rowCount && a.colCount === b.colCount;
 };
 
 const assertSameSize = (
-  a: F32Mat<number, number>,
-  b: F32Mat<number, number>,
+  a: f64Mat<number, number>,
+  b: f64Mat<number, number>,
 ): void => {
   if (!sameSize(a, b)) {
     throw new Error("Matrix size mismatch");
@@ -254,12 +253,12 @@ const assertSameSize = (
 /**
   単位行列の生成
 */
-export const generateIdentity = <T extends number>(size: T): F32Mat<T, T> => {
+export const generateIdentity = <T extends number>(size: T): f64Mat<T, T> => {
   if (size <= 0) {
     throw new Error("Matrix size must be greater than 0");
   }
 
-  const result = new Float32Array(size * size).fill(0);
+  const result = new Float64Array(size * size).fill(0);
 
   for (let i = 0; i < size; i++) {
     result[i * size + i] = 1;
@@ -271,18 +270,18 @@ export const generateIdentity = <T extends number>(size: T): F32Mat<T, T> => {
     rowCount: size,
     colCount: size,
     value: result,
-  } as F32Mat<T, T>;
+  } as f64Mat<T, T>;
 };
 
 /**
  * 行列の指定した2つの行をスワップする
- * @param matrix F32Mat型の行列
+ * @param matrix f64Mat型の行列
  * @param row1 スワップする1つ目の行インデックス
  * @param row2 スワップする2つ目の行インデックス
  *
  */
 const swapRows = (
-  matrix: F32Mat<number, number>,
+  matrix: f64Mat<number, number>,
   row1: number,
   row2: number,
 ): void => {
@@ -298,7 +297,7 @@ const swapRows = (
 /**
  * 指定された行にスカラー倍された別の行を減算する
  *
- * @param matrix - 操作対象の行列。行列は `F32Mat<number, number>` 型で、`value` プロパティに値を格納します。
+ * @param matrix - 操作対象の行列。行列は `f64Mat<number, number>` 型で、`value` プロパティに値を格納します。
  * @param targetRowIndex - 減算先の行のインデックス
  * @param sourceRowIndex - 減算元の行のインデックス
  * @param scalar - 減算元の行に掛けるスカラー値
@@ -315,7 +314,7 @@ const swapRows = (
  * ```
  */
 const subtractScaledRow = (
-  matrix: F32Mat<number, number>,
+  matrix: f64Mat<number, number>,
   targetRowIndex: number,
   sourceRowIndex: number,
   scalar: number,
@@ -329,12 +328,12 @@ const subtractScaledRow = (
 
 /**
  * 行列の指定した行をスカラー倍する
- * @param matrix F32Mat型の行列
+ * @param matrix f64Mat型の行列
  * @param row スカラー倍する行インデックス
  * @param scalar スカラー値
  */
 const scaleRow = (
-  matrix: F32Mat<number, number>,
+  matrix: f64Mat<number, number>,
   row: number,
   scalar: number,
 ): void => {
@@ -348,8 +347,8 @@ const scaleRow = (
 計算量 O(N^3) の素朴な実装
 */
 export const inverse = <T extends number>(
-  matrix: F32Mat<T, T>,
-): F32Mat<T, T> => {
+  matrix: f64Mat<T, T>,
+): f64Mat<T, T> => {
   const size = matrix.colCount;
   if (matrix.rowCount !== size) {
     throw new Error("Matrix must be square");
@@ -403,7 +402,7 @@ export const inverse = <T extends number>(
  * 行列式を求める素朴な実装
  * @param matrix
  */
-export const determinant = <T extends number>(matrix: F32Mat<T, T>): number => {
+export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
   if (matrix.rowCount !== matrix.colCount) {
     throw new Error("Matrix must be square to compute determinant");
   }
@@ -453,7 +452,7 @@ export const determinant = <T extends number>(matrix: F32Mat<T, T>): number => {
 /**
 行列をコンソール上で確認しやすいテキストに整形する
 */
-export const toString = (matrix: F32Mat<unknown, unknown>): string => {
+export const toString = (matrix: f64Mat<unknown, unknown>): string => {
   const rows: string[] = [];
   for (let row = 0; row < matrix.rowCount; row++) {
     const rowValues: number[] = [];

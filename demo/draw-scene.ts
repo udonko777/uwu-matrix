@@ -8,7 +8,7 @@ export const translationMatrix = (
   x: number,
   y: number,
   z: number,
-): Matrix.F32Mat<number, number> => {
+): Matrix.f64Mat<number, number> => {
   const mat = Matrix.generateIdentity(4);
   mat.value[12] = x;
   mat.value[13] = y;
@@ -17,7 +17,7 @@ export const translationMatrix = (
 };
 
 // Z軸回転行列 (4x4)
-export const rotateZMatrix = (rad: number): Matrix.F32Mat<number, number> => {
+export const rotateZMatrix = (rad: number): Matrix.f64Mat<number, number> => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   return Matrix.fromRowMajor([
@@ -40,7 +40,7 @@ export const getPerspectiveMatrix = (
   aspect: number,
   near: number,
   far: number,
-): Matrix.F32Mat<number, number> => {
+): Matrix.f64Mat<number, number> => {
   const f = 1.0 / Math.tan(fovY / 2);
   const nf = 1 / (near - far);
 
@@ -129,7 +129,7 @@ export const drawScene = (
   const aspect = glCanvas.clientWidth / glCanvas.clientHeight;
   const zNear = 0.1;
   const zFar = 100.0;
-  let projectionMatrix = Matrix.generateIdentity(4) as Matrix.F32Mat<
+  let projectionMatrix = Matrix.generateIdentity(4) as Matrix.f64Mat<
     number,
     number
   >; //FIX ME
@@ -145,7 +145,7 @@ export const drawScene = (
   projectionMatrix = Matrix.multiplyMatrix(projectionMatrix, perspectiveMatrix);
 
   // 描写位置をシーンの中央である "identity" ポイントにセットする
-  let modelViewMatrix = Matrix.generateIdentity(4) as Matrix.F32Mat<
+  let modelViewMatrix = Matrix.generateIdentity(4) as Matrix.f64Mat<
     number,
     number
   >; //FIX ME
@@ -176,12 +176,12 @@ export const drawScene = (
   gl.uniformMatrix4fv(
     programInfo.uniformLocations.projectionMatrix,
     false,
-    projectionMatrix.value,
+    new Float32Array(projectionMatrix.value),
   );
   gl.uniformMatrix4fv(
     programInfo.uniformLocations.modelViewMatrix,
     false,
-    modelViewMatrix.value,
+    new Float32Array(projectionMatrix.value),
   );
 
   {
