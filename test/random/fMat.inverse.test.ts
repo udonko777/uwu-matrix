@@ -91,7 +91,7 @@ describe("Matrix.inverse (randomized tests)", () => {
       fc.property(regularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
 
-        if (Math.abs(determinant(matrix)) < 1e-4) {
+        if (Math.abs(determinant(matrix)) < 1e-5) {
           fc.pre(false);
         }
 
@@ -99,7 +99,7 @@ describe("Matrix.inverse (randomized tests)", () => {
         const identity = multiplyMatrix(matrix, inv);
         const expected = generateIdentity(size).value;
 
-        expect(identity.value).toBeCloseMatrix(expected, 1e-3);
+        expect(identity.value).toBeCloseMatrix(expected, 1e-8);
       }),
     );
   });
@@ -109,7 +109,7 @@ describe("Matrix.inverse (randomized tests)", () => {
       fc.property(intRegularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
 
-        if (Math.abs(determinant(matrix)) < 1e-3) {
+        if (Math.abs(determinant(matrix)) < 1e-5) {
           fc.pre(false);
         }
 
@@ -117,7 +117,7 @@ describe("Matrix.inverse (randomized tests)", () => {
         const identity = multiplyMatrix(matrix, inv);
         const expected = generateIdentity(size).value;
 
-        expect(identity.value).toBeCloseMatrix(expected, 1e-3);
+        expect(identity.value).toBeCloseMatrix(expected, 1e-8);
       }),
     );
   });
@@ -127,7 +127,7 @@ describe("Matrix.inverse (randomized tests)", () => {
       fc.property(randomizedRegularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
 
-        if (Math.abs(determinant(matrix)) < 1e-3) {
+        if (Math.abs(determinant(matrix)) < 1e-5) {
           fc.pre(false);
         }
 
@@ -141,7 +141,7 @@ describe("Matrix.inverse (randomized tests)", () => {
         console.log("Resulting Identity:", identity.value);
         console.log("Expected Identity:", expected);
         */
-        expect(identity.value).toBeCloseMatrix(expected, 1e-3);
+        expect(identity.value).toBeCloseMatrix(expected, 1e-8);
       }),
     );
   });
