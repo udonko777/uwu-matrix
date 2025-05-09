@@ -128,6 +128,17 @@ export const toRowMajor2dArray = (
   return result;
 };
 
+const toPrimitive = function (
+  this: f64Mat<number, number>,
+  hint: string,
+): string | null {
+  if (hint === "string") {
+    // 例: [object f64Mat 3x4]
+    return `[object ${this.type}: ${this.rowCount}x${this.colCount}]`;
+  }
+  return null;
+};
+
 /**
  * 空の`f64Mat`を返す\
  * このファイル内でのみ使用
@@ -463,11 +474,4 @@ export const toString = (matrix: f64Mat<unknown, unknown>): string => {
     rows.push(rowValues.join("\t"));
   }
   return rows.join("\n");
-};
-
-const toPrimitive = (hint: string): string | null => {
-  if (hint === "string") {
-    return "[object F64Mat]";
-  }
-  return null;
 };
