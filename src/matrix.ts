@@ -35,7 +35,7 @@ export const isf64Mat = (value: unknown): value is f64Mat<number, number> => {
   const matrix = value as Partial<f64Mat<number, number>>;
   return (
     matrix.type === TYPE_NAME &&
-    matrix.value instanceof Float32Array &&
+    matrix.value instanceof Float64Array &&
     typeof matrix.rowCount === "number" &&
     typeof matrix.colCount === "number" &&
     matrix.rowCount > 0 &&
