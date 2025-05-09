@@ -310,7 +310,8 @@ const swapRows = (
  *   colCount: 3
  * };
  * subtractScaledRow(matrix, 0, 1, 2);
- * // 結果: matrix.value :  [-7, -8, -9, 4, 5, 6]
+ * // 結果: matrix.value :  [-3, 2, -5, 4, -7, 6]
+ * // valueは列優先配列なので、行列表記では [[-3,-5,-7],[2,4,6]] になる。
  * ```
  */
 export const subtractScaledRow = (
