@@ -466,7 +466,7 @@ export const toString = (matrix: f64Mat<unknown, unknown>): string => {
 
 const toPrimitive = (hint: string): string | null => {
   if (hint === "string") {
-    return "[object F32Mat]";
+    return "[object F64Mat]";
   }
   return null;
 };
