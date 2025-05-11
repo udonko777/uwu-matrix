@@ -99,7 +99,7 @@ describe("Matrix.inverse (randomized tests)", () => {
         const identity = multiplyMatrix(matrix, inv);
         const expected = generateIdentity(size).value;
 
-        expect(identity.value).toBeCloseMatrix(expected, 1e-8);
+        expect(identity.value).toBeCloseMatrix(expected, 1e-11);
       }),
     );
   });
@@ -117,7 +117,7 @@ describe("Matrix.inverse (randomized tests)", () => {
         const identity = multiplyMatrix(matrix, inv);
         const expected = generateIdentity(size).value;
 
-        expect(identity.value).toBeCloseMatrix(expected, 1e-8);
+        expect(identity.value).toBeCloseMatrix(expected, 1e-11);
       }),
     );
   });
@@ -141,7 +141,7 @@ describe("Matrix.inverse (randomized tests)", () => {
         console.log("Resulting Identity:", identity.value);
         console.log("Expected Identity:", expected);
         */
-        expect(identity.value).toBeCloseMatrix(expected, 1e-8);
+        expect(identity.value).toBeCloseMatrix(expected, 1e-11);
       }),
     );
   });

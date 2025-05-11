@@ -21,7 +21,7 @@ describe("Matrix.inverse", () => {
     ]);
     const result = inverse(matrix);
 
-    expect(result.value).toBeCloseMatrix(expectedInverse.value, 9);
+    expect(result.value).toBeCloseMatrix(expectedInverse.value);
   });
 
   it("calculates the inverse of a 3x3 matrix", () => {
@@ -92,7 +92,7 @@ describe("Matrix.inverse", () => {
     ]);
     const AInverse = inverse(A);
     const I = multiplyMatrix(A, AInverse);
-    expect(I.value).toBeCloseMatrix(generateIdentity(10).value, 1e-4);
+    expect(I.value).toBeCloseMatrix(generateIdentity(10).value);
   });
 
   it("calculates the inverse of a 10x10 matrix", () => {

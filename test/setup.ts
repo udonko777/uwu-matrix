@@ -20,7 +20,7 @@ expect.extend({
   toBeCloseMatrix(
     received: ArrayLike<number>,
     expected: ArrayLike<number>,
-    epsilon = 1e-6,
+    epsilon = 1e-10,
   ): ExpectationResult {
     const pass = areMatricesClose(received, expected, epsilon);
     const { isNot, utils } = this;
