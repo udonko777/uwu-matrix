@@ -4,7 +4,7 @@ import {
   fromRowMajor,
   valueAt,
   add,
-  subtractMatrix,
+  subtract,
   multiplyScalar,
   getClone,
   getIdentity,
@@ -66,7 +66,7 @@ describe("Matrix.subtract", () => {
       [5, 6],
       [7, 8],
     ]);
-    const result = subtractMatrix(a, b);
+    const result = subtract(a, b);
     expect(result.value).toEqual(new Float64Array([5, 4, 3, 2]));
   });
 
@@ -76,7 +76,7 @@ describe("Matrix.subtract", () => {
       [3, 4],
     ]);
     const b = createDynamicMatrix([[1, 2, 3]]);
-    expect(() => subtractMatrix(a, b)).toThrow("Matrix size mismatch");
+    expect(() => subtract(a, b)).toThrow("Matrix size mismatch");
   });
 });
 

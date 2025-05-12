@@ -209,7 +209,7 @@ export const add = (
   return { ...a, value };
 };
 
-export const subtractMatrix = (
+export const subtract = (
   a: f64Mat<number, number>,
   b: f64Mat<number, number>,
 ): f64Mat<number, number> => {
