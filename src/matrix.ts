@@ -1,3 +1,5 @@
+import { is2dNumberArray } from "@/common";
+
 const TYPE_NAME = "f64Mat";
 
 /**
@@ -13,15 +15,6 @@ export type f64Mat<R, C> = {
   /** 列の量 */
   colCount: C extends number ? C : never;
   [Symbol.toPrimitive]?: (hint: string) => string | null;
-};
-
-const is2dNumberArray = (value: unknown): value is number[][] => {
-  if (!Array.isArray(value) || value.length <= 0) {
-    return false;
-  }
-  return value.every(
-    row => Array.isArray(row) && row.every(cell => typeof cell === "number"),
-  );
 };
 
 /**
