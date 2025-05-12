@@ -235,14 +235,23 @@ export const cloneMatrix = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
   return { ...matrix, value: Float64Array.from(matrix.value) };
 };
 
-export const equalsMatrix = (
+export const equals = (
   a: f64Mat<number, number>,
   b: f64Mat<number, number>,
+  precisionExponent = Infinity,
 ): boolean => {
   if (a.rowCount !== b.rowCount || a.colCount !== b.colCount) {
     return false;
   }
-  return a.value.every((v, i) => v === b.value[i]);
+
+  // precisionExponentがInfinityの場合、完全一致比較を行う
+  if (precisionExponent === Infinity) {
+    return a.value.every((v, i) => v === b.value[i]);
+  }
+
+  const epsilon = Math.pow(10, -precisionExponent);
+
+  return a.value.every((v, i) => Math.abs(v - b.value[i]) < epsilon);
 };
 
 export const sameSize = (
