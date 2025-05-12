@@ -91,6 +91,38 @@ export const fromRowMajor = (rowMajor: number[][]): f64Mat<number, number> => {
 };
 
 /**
+ * 行列のディープコピーを返す
+ * @param matrix コピーを手に入れたい行列
+ * @returns deep copyされた行列
+ */
+export const cloneMatrix = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
+  return { ...matrix, value: Float64Array.from(matrix.value) };
+};
+
+/**
+  単位行列の生成
+*/
+export const generateIdentity = <T extends number>(size: T): f64Mat<T, T> => {
+  if (size <= 0) {
+    throw new Error("Matrix size must be greater than 0");
+  }
+
+  const result = new Float64Array(size * size).fill(0);
+
+  for (let i = 0; i < size; i++) {
+    result[i * size + i] = 1;
+  }
+
+  return {
+    ...getEmpty(),
+    type: TYPE_NAME,
+    rowCount: size,
+    colCount: size,
+    value: result,
+  } as f64Mat<T, T>;
+};
+
+/**
  * f64Matのvalueをrow-majorな一次元配列として取得する。実装時点ではテスト用
  * @param matrix f64Mat型の行列
  * @returns row-majorな一次元配列
@@ -226,15 +258,6 @@ export const multiplyMatrix = <
   };
 };
 
-/**
- * 行列のディープコピーを返す
- * @param matrix コピーを手に入れたい行列
- * @returns deep copyされた行列
- */
-export const cloneMatrix = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
-  return { ...matrix, value: Float64Array.from(matrix.value) };
-};
-
 export const equals = (
   a: f64Mat<number, number>,
   b: f64Mat<number, number>,
@@ -268,29 +291,6 @@ const assertSameSize = (
   if (!sameSize(a, b)) {
     throw new Error("Matrix size mismatch");
   }
-};
-
-/**
-  単位行列の生成
-*/
-export const generateIdentity = <T extends number>(size: T): f64Mat<T, T> => {
-  if (size <= 0) {
-    throw new Error("Matrix size must be greater than 0");
-  }
-
-  const result = new Float64Array(size * size).fill(0);
-
-  for (let i = 0; i < size; i++) {
-    result[i * size + i] = 1;
-  }
-
-  return {
-    ...getEmpty(),
-    type: TYPE_NAME,
-    rowCount: size,
-    colCount: size,
-    value: result,
-  } as f64Mat<T, T>;
 };
 
 /**
