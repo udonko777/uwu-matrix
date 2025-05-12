@@ -95,14 +95,14 @@ export const fromRowMajor = (rowMajor: number[][]): f64Mat<number, number> => {
  * @param matrix コピーを手に入れたい行列
  * @returns deep copyされた行列
  */
-export const cloneMatrix = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
+export const getClone = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
   return { ...matrix, value: Float64Array.from(matrix.value) };
 };
 
 /**
   単位行列の生成
 */
-export const generateIdentity = <T extends number>(size: T): f64Mat<T, T> => {
+export const getIdentity = <T extends number>(size: T): f64Mat<T, T> => {
   if (size <= 0) {
     throw new Error("Matrix size must be greater than 0");
   }
@@ -186,7 +186,7 @@ const getEmpty = (): f64Mat<number, number> => ({
   [Symbol.toPrimitive]: toPrimitive,
 });
 
-export const getAt = (
+export const valueAt = (
   matrix: f64Mat<number, number>,
   rowIndex: number,
   columnIndex: number,
@@ -200,7 +200,7 @@ export const getAt = (
   return matrix.value[columnIndex * matrix.rowCount + rowIndex];
 };
 
-export const addMatrix = (
+export const add = (
   a: f64Mat<number, number>,
   b: f64Mat<number, number>,
 ): f64Mat<number, number> => {
@@ -226,11 +226,7 @@ export const multiplyScalar = (
   return { ...matrix, value };
 };
 
-export const multiplyMatrix = <
-  M extends number,
-  N extends number,
-  P extends number,
->(
+export const multiply = <M extends number, N extends number, P extends number>(
   a: f64Mat<M, N>,
   b: f64Mat<N, P>,
 ): f64Mat<M, P> => {
@@ -375,17 +371,17 @@ export const inverse = <T extends number>(
     throw new Error("Matrix must be square");
   }
 
-  const m = cloneMatrix(matrix);
-  const inv = generateIdentity(size);
+  const m = getClone(matrix);
+  const inv = getIdentity(size);
 
   for (let pivot = 0; pivot < size; pivot++) {
-    let pivotValue = getAt(m, pivot, pivot);
+    let pivotValue = valueAt(m, pivot, pivot);
 
     // 最大の絶対値を持つ行を探す
     let maxRow = pivot;
-    let maxAbs = Math.abs(getAt(m, pivot, pivot));
+    let maxAbs = Math.abs(valueAt(m, pivot, pivot));
     for (let i = pivot + 1; i < size; i++) {
-      const val = Math.abs(getAt(m, i, pivot));
+      const val = Math.abs(valueAt(m, i, pivot));
       if (val > maxAbs) {
         maxAbs = val;
         maxRow = i;
@@ -402,14 +398,14 @@ export const inverse = <T extends number>(
       swapRows(inv, pivot, maxRow);
     }
 
-    pivotValue = getAt(m, pivot, pivot);
+    pivotValue = valueAt(m, pivot, pivot);
 
     scaleRow(m, pivot, 1 / pivotValue);
     scaleRow(inv, pivot, 1 / pivotValue);
 
     for (let row = 0; row < size; row++) {
       if (row === pivot) continue;
-      const factor = getAt(m, row, pivot);
+      const factor = valueAt(m, row, pivot);
       if (Math.abs(factor) < 1e-8) continue;
       subtractScaledRow(m, row, pivot, factor);
       subtractScaledRow(inv, row, pivot, factor);
@@ -429,19 +425,19 @@ export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
   }
 
   const size = matrix.rowCount;
-  const m = cloneMatrix(matrix);
+  const m = getClone(matrix);
   let det = 1.0;
 
   for (let pivot = 0; pivot < size; pivot++) {
-    let pivotValue = getAt(m, pivot, pivot);
+    let pivotValue = valueAt(m, pivot, pivot);
 
     // ピボットが (ほぼ) 0 の場合、行をスワップ
     // 無限ループする可能性がある?
     if (Math.abs(pivotValue) < 1e-5) {
       let maxRow = pivot;
-      let maxAbs = Math.abs(getAt(m, pivot, pivot));
+      let maxAbs = Math.abs(valueAt(m, pivot, pivot));
       for (let i = pivot + 1; i < size; i++) {
-        const val = Math.abs(getAt(m, i, pivot));
+        const val = Math.abs(valueAt(m, i, pivot));
         if (val > maxAbs) {
           maxAbs = val;
           maxRow = i;
@@ -454,14 +450,14 @@ export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
         swapRows(m, pivot, maxRow);
         det *= -1; // 行をスワップすると符号が反転
       }
-      pivotValue = getAt(m, pivot, pivot);
+      pivotValue = valueAt(m, pivot, pivot);
     }
 
     det *= pivotValue;
     scaleRow(m, pivot, 1 / pivotValue);
 
     for (let row = pivot + 1; row < size; row++) {
-      const factor = getAt(m, row, pivot);
+      const factor = valueAt(m, row, pivot);
       if (Math.abs(factor) < 1e-8) continue;
       subtractScaledRow(m, row, pivot, factor);
     }

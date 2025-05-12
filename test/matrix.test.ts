@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   fromColumnMajor as createDynamicMatrix,
   fromRowMajor,
-  getAt,
-  addMatrix,
+  valueAt,
+  add,
   subtractMatrix,
   multiplyScalar,
-  cloneMatrix,
-  generateIdentity,
+  getClone,
+  getIdentity,
   toRowMajorArray,
   toRowMajor2dArray,
 } from "../src/matrix";
@@ -21,14 +21,14 @@ describe("Matrix basics", () => {
     expect(a.value).toEqual(new Float64Array([1, 3, 5, 2, 4, 6]));
   });
 
-  it("Matrix.getAt", () => {
+  it("Matrix.valueAt", () => {
     const a = createDynamicMatrix([
       [1, 2, 3],
       [4, 5, 6],
       [7, 8, 9],
     ]);
-    expect(getAt(a, 0, 1)).toEqual(4);
-    expect(getAt(a, 1, 2)).toEqual(8);
+    expect(valueAt(a, 0, 1)).toEqual(4);
+    expect(valueAt(a, 1, 2)).toEqual(8);
   });
 });
 
@@ -42,7 +42,7 @@ describe("Matrix.add", () => {
       [5, 6],
       [7, 8],
     ]);
-    const result = addMatrix(a, b);
+    const result = add(a, b);
     expect(result.value).toEqual(new Float64Array([6, 8, 10, 12]));
   });
 
@@ -52,7 +52,7 @@ describe("Matrix.add", () => {
       [3, 4],
     ]);
     const b = createDynamicMatrix([[1, 2, 3]]);
-    expect(() => addMatrix(a, b)).toThrow("Matrix size mismatch");
+    expect(() => add(a, b)).toThrow("Matrix size mismatch");
   });
 });
 
@@ -103,13 +103,13 @@ describe("Matrix.multiplyScalar", () => {
   });
 });
 
-describe("Matrix.cloneMatrix", () => {
+describe("Matrix.getClone", () => {
   it("creates a deep clone of a 2x2 matrix", () => {
     const a = createDynamicMatrix([
       [1, 2],
       [3, 4],
     ]);
-    const clone = cloneMatrix(a);
+    const clone = getClone(a);
     expect(clone.value).toEqual(new Float64Array(a.value));
     expect(clone).not.toBe(a);
   });
@@ -119,23 +119,23 @@ describe("Matrix.cloneMatrix", () => {
       [1, 2],
       [3, 4],
     ]);
-    const clone = cloneMatrix(a);
+    const clone = getClone(a);
     const modifiedClone = multiplyScalar(clone, 2);
     expect(modifiedClone.value).toEqual(new Float64Array([2, 4, 6, 8]));
     expect(a.value).toEqual(new Float64Array([1, 2, 3, 4]));
   });
 });
 
-describe("Matrix.generateIdentity", () => {
+describe("Matrix.getIdentity", () => {
   it("generates a 2x2 identity matrix", () => {
-    const identity = generateIdentity(2);
+    const identity = getIdentity(2);
     expect(identity.value).toEqual(new Float64Array([1, 0, 0, 1]));
     expect(identity.rowCount).toBe(2);
     expect(identity.colCount).toBe(2);
   });
 
   it("generates a 3x3 identity matrix", () => {
-    const identity = generateIdentity(3);
+    const identity = getIdentity(3);
     expect(identity.value).toEqual(
       new Float64Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
     );
@@ -144,7 +144,7 @@ describe("Matrix.generateIdentity", () => {
   });
 
   it("generates a 4x4 identity matrix", () => {
-    const identity = generateIdentity(4);
+    const identity = getIdentity(4);
     expect(identity.value).toEqual(
       new Float64Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
     );
@@ -153,15 +153,11 @@ describe("Matrix.generateIdentity", () => {
   });
 
   it("throws an error for size 0", () => {
-    expect(() => generateIdentity(0)).toThrow(
-      "Matrix size must be greater than 0",
-    );
+    expect(() => getIdentity(0)).toThrow("Matrix size must be greater than 0");
   });
 
   it("throws an error for negative sizes", () => {
-    expect(() => generateIdentity(-3)).toThrow(
-      "Matrix size must be greater than 0",
-    );
+    expect(() => getIdentity(-3)).toThrow("Matrix size must be greater than 0");
   });
 });
 

@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import {
   fromRowMajor,
-  generateIdentity,
+  getIdentity,
   inverse,
-  multiplyMatrix,
+  multiply,
   determinant,
   toRowMajor2dArray,
   subtractScaledRow,
@@ -40,7 +40,7 @@ const regularMatrix = fc.integer({ min: 2, max: 5 }).chain(size =>
     .map(([a, b]) => {
       const m1 = fromRowMajor(a);
       const m2 = fromRowMajor(b);
-      const product = multiplyMatrix(m1, m2);
+      const product = multiply(m1, m2);
       return { size, rows: toRowMajor2dArray(product) };
     }),
 );
@@ -57,7 +57,7 @@ const intRegularMatrix = fc.integer({ min: 2, max: 5 }).chain(size => {
       { minLength: size, maxLength: size * 3 },
     )
     .map(operations => {
-      const mat = toRowMajor2dArray(generateIdentity(size));
+      const mat = toRowMajor2dArray(getIdentity(size));
       // 単位行列にランダムな行基本変形を施す
       for (const [op, i, j, k] of operations) {
         if (op === "swap" && i !== j) {
@@ -73,7 +73,7 @@ const intRegularMatrix = fc.integer({ min: 2, max: 5 }).chain(size => {
 });
 
 const randomizedRegularMatrix = fc.integer({ min: 2, max: 5 }).map(size => {
-  const mat = generateIdentity(size);
+  const mat = getIdentity(size);
   // ランダムに行の入れ替え・スカラー倍・行の加算などを行う
   for (let i = 0; i < size; i++) {
     const factor = Math.random() * 10 - 5;
@@ -96,8 +96,8 @@ describe("Matrix.inverse (randomized tests)", () => {
         }
 
         const inv = inverse(matrix);
-        const identity = multiplyMatrix(matrix, inv);
-        const expected = generateIdentity(size).value;
+        const identity = multiply(matrix, inv);
+        const expected = getIdentity(size).value;
 
         expect(identity.value).toBeCloseMatrix(expected, 1e-11);
       }),
@@ -114,8 +114,8 @@ describe("Matrix.inverse (randomized tests)", () => {
         }
 
         const inv = inverse(matrix);
-        const identity = multiplyMatrix(matrix, inv);
-        const expected = generateIdentity(size).value;
+        const identity = multiply(matrix, inv);
+        const expected = getIdentity(size).value;
 
         expect(identity.value).toBeCloseMatrix(expected, 1e-11);
       }),
@@ -132,8 +132,8 @@ describe("Matrix.inverse (randomized tests)", () => {
         }
 
         const inv = inverse(matrix);
-        const identity = multiplyMatrix(matrix, inv);
-        const expected = generateIdentity(size).value;
+        const identity = multiply(matrix, inv);
+        const expected = getIdentity(size).value;
 
         /*
         console.log("Original Matrix:", matrix.value);

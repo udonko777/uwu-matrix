@@ -9,7 +9,7 @@ export const translationMatrix = (
   y: number,
   z: number,
 ): Matrix.f64Mat<number, number> => {
-  const mat = Matrix.generateIdentity(4);
+  const mat = Matrix.getIdentity(4);
   mat.value[12] = x;
   mat.value[13] = y;
   mat.value[14] = z;
@@ -129,10 +129,7 @@ export const drawScene = (
   const aspect = glCanvas.clientWidth / glCanvas.clientHeight;
   const zNear = 0.1;
   const zFar = 100.0;
-  let projectionMatrix = Matrix.generateIdentity(4) as Matrix.f64Mat<
-    number,
-    number
-  >; //FIX ME
+  let projectionMatrix = Matrix.getIdentity(4) as Matrix.f64Mat<number, number>; //FIX ME
   const perspectiveMatrix = getPerspectiveMatrix(
     fieldOfView,
     aspect,
@@ -142,21 +139,18 @@ export const drawScene = (
 
   // 受け取り先を取る
   //mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-  projectionMatrix = Matrix.multiplyMatrix(projectionMatrix, perspectiveMatrix);
+  projectionMatrix = Matrix.multiply(projectionMatrix, perspectiveMatrix);
 
   // 描写位置をシーンの中央である "identity" ポイントにセットする
-  let modelViewMatrix = Matrix.generateIdentity(4) as Matrix.f64Mat<
-    number,
-    number
-  >; //FIX ME
+  let modelViewMatrix = Matrix.getIdentity(4) as Matrix.f64Mat<number, number>; //FIX ME
 
   // そして描写位置を正方形を描写し始めたい位置に少しだけ動かす
   //mat4.translate(modelViewMatrix, modelViewMatrix,[-0.0, 0.0, -6.0],);
-  modelViewMatrix = Matrix.multiplyMatrix(
+  modelViewMatrix = Matrix.multiply(
     modelViewMatrix,
     translationMatrix(-0.0, 0.0, -6.0),
   );
-  modelViewMatrix = Matrix.multiplyMatrix(
+  modelViewMatrix = Matrix.multiply(
     modelViewMatrix,
     rotateZMatrix(squareRotation),
   );
