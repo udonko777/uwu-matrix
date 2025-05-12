@@ -52,7 +52,7 @@ export const fromColumnMajor = (
   const rowCount = columnMajor[0].length;
   const colCount = columnMajor.length;
   const value = new Float64Array(columnMajor.flat());
-  return { ...getEmpty(), value, rowCount, colCount };
+  return init(value, rowCount, colCount);
 };
 
 /**
@@ -75,12 +75,7 @@ export const fromRowMajor = (rowMajor: number[][]): f64Mat<number, number> => {
     }
   }
 
-  return {
-    ...getEmpty(),
-    value,
-    rowCount,
-    colCount,
-  };
+  return init(value, rowCount, colCount);
 };
 
 /**
@@ -107,11 +102,8 @@ export const getIdentity = <T extends number>(size: T): f64Mat<T, T> => {
   }
 
   return {
-    ...getEmpty(),
+    ...init(result, size, size),
     type: TYPE_NAME,
-    rowCount: size,
-    colCount: size,
-    value: result,
   } as f64Mat<T, T>;
 };
 
@@ -166,18 +158,21 @@ const toPrimitive = function (
 
 /**
  * 空の`f64Mat`を返す\
- * このファイル内でのみ使用
+ * ライブラリ内でのみ使用
  * @example
- * // 空のf64Matに必要な変更を加えて返す
- * return { ...getEmpty(), rowCount: 2, colCount: 2 };
  */
-const getEmpty = (): f64Mat<number, number> => ({
-  type: TYPE_NAME,
-  value: new Float64Array(),
-  rowCount: 0,
-  colCount: 0,
-  [Symbol.toPrimitive]: toPrimitive,
-});
+export const init = <R extends number, C extends number>(
+  value: ArrayLike<number> = [],
+  rowCount: R,
+  colCount: C,
+): f64Mat<R, C> =>
+  ({
+    type: TYPE_NAME,
+    value: new Float64Array(value),
+    rowCount,
+    colCount,
+    [Symbol.toPrimitive]: toPrimitive,
+  }) as f64Mat<R, C>;
 
 export const valueAt = (
   matrix: f64Mat<number, number>,
@@ -239,12 +234,7 @@ export const multiply = <M extends number, N extends number, P extends number>(
     }
   }
 
-  return {
-    ...getEmpty(),
-    value,
-    rowCount: a.rowCount,
-    colCount: b.colCount,
-  };
+  return init(value, a.rowCount, b.colCount);
 };
 
 export const equals = (
