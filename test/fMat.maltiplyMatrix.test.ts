@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromRowMajor, multiplyMatrix } from "../src/matrix";
+import { fromRowMajor, multiply } from "../src/matrix";
 
 describe("multiplyMatrix", () => {
   it("should multiply two 2x2 matrices correctly", () => {
@@ -12,7 +12,7 @@ describe("multiplyMatrix", () => {
       [7, 8],
     ]);
 
-    const result = multiplyMatrix(a, b);
+    const result = multiply(a, b);
 
     expect(result.rowCount).toBe(2);
     expect(result.colCount).toBe(2);
@@ -31,7 +31,7 @@ describe("multiplyMatrix", () => {
       [11, 12],
     ]);
 
-    const result = multiplyMatrix(a, b);
+    const result = multiply(a, b);
 
     expect(result.rowCount).toBe(2);
     expect(result.colCount).toBe(2);
@@ -49,7 +49,7 @@ describe("multiplyMatrix", () => {
       [10, 11, 12],
     ]);
 
-    const result = multiplyMatrix(a, b);
+    const result = multiply(a, b);
 
     expect(result.rowCount).toBe(3);
     expect(result.colCount).toBe(3);
@@ -65,6 +65,6 @@ describe("multiplyMatrix", () => {
     ]);
     const b = fromRowMajor([[5, 6, 7]]);
 
-    expect(() => multiplyMatrix(a, b)).toThrow("Matrix size mismatch");
+    expect(() => multiply(a, b)).toThrow("Matrix size mismatch");
   });
 });

@@ -2,15 +2,15 @@
 import "vitest";
 
 interface CustomMatchers<T = unknown> {
-  toBeCloseMatrix(expected: Float32Array, epsilon?: number): T;
+  toBeCloseMatrix(expected: ArrayLike<number>, epsilon?: number): T;
 }
 
 declare module "vitest" {
   interface Assertion<T = any> {
-    toBeCloseMatrix(expected: Float32Array, epsilon?: number): T;
+    toBeCloseMatrix(expected: ArrayLike<number>, epsilon?: number): T;
   }
 
   interface AsymmetricMatchersContaining {
-    toBeCloseMatrix(expected: Float32Array, epsilon?: number): unknown;
+    toBeCloseMatrix(expected: ArrayLike<number>, epsilon?: number): unknown;
   }
 }

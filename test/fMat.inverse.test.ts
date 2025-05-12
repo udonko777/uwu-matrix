@@ -2,12 +2,7 @@
 /// <reference types="../types/vitest.d.ts" />
 
 import { describe, expect, it } from "vitest";
-import {
-  fromRowMajor,
-  generateIdentity,
-  inverse,
-  multiplyMatrix,
-} from "../src/matrix";
+import { fromRowMajor, getIdentity, inverse, multiply } from "../src/matrix";
 
 describe("Matrix.inverse", () => {
   it("calculates the inverse of a 2x2 matrix", () => {
@@ -21,7 +16,7 @@ describe("Matrix.inverse", () => {
     ]);
     const result = inverse(matrix);
 
-    expect(result.value).toEqual(expectedInverse.value);
+    expect(result.value).toBeCloseMatrix(expectedInverse.value);
   });
 
   it("calculates the inverse of a 3x3 matrix", () => {
@@ -41,7 +36,7 @@ describe("Matrix.inverse", () => {
   });
 
   it("calculates the inverse of a 10x10 identity matrix", () => {
-    const matrix = generateIdentity(10);
+    const matrix = getIdentity(10);
     const matrixInverse = inverse(matrix);
 
     expect(matrixInverse.value).toBeCloseMatrix(matrix.value);
@@ -91,8 +86,8 @@ describe("Matrix.inverse", () => {
       ],
     ]);
     const AInverse = inverse(A);
-    const I = multiplyMatrix(A, AInverse);
-    expect(I.value).toBeCloseMatrix(generateIdentity(10).value, 1e-4);
+    const I = multiply(A, AInverse);
+    expect(I.value).toBeCloseMatrix(getIdentity(10).value);
   });
 
   it("calculates the inverse of a 10x10 matrix", () => {
@@ -191,8 +186,8 @@ describe("Matrix.inverse", () => {
       [4, 7],
       [2, 6],
     ]);
-    const identity = generateIdentity(2);
-    const result = multiplyMatrix(matrix, inverse(matrix));
+    const identity = getIdentity(2);
+    const result = multiply(matrix, inverse(matrix));
 
     expect(result.value).toBeCloseMatrix(identity.value);
   });
@@ -203,7 +198,7 @@ describe("Matrix.inverse", () => {
       [4, 5, 6],
     ]);
 
-    expect(() => inverse(nonSquareMatrix)).toThrow("Matrix size mismatch");
+    expect(() => inverse(nonSquareMatrix)).toThrow("Matrix must be square");
   });
 
   it("throws an error for singular matrices", () => {

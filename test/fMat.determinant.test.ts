@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { determinant, fromRowMajor, generateIdentity } from "../src/matrix";
+import { determinant, fromRowMajor, getIdentity } from "../src/matrix";
 
 describe("determinant", () => {
   it("should return 1 for an identity matrix", () => {
-    const identityMatrix = generateIdentity(3);
+    const identityMatrix = getIdentity(3);
     expect(determinant(identityMatrix)).toBe(1);
   });
 
