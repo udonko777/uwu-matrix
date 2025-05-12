@@ -1,3 +1,3 @@
 import "./style.css";
 
-//export { DynamicMatrix as Matrix } from "./matrix";
+export * as f64Mat from "./matrix";
