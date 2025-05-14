@@ -40,7 +40,7 @@ export const getPerspectiveMatrix = (
   aspect: number,
   near: number,
   far: number,
-): Matrix.f64Mat<number, number> => {
+): Matrix.f64Mat<4, 4> => {
   const f = 1.0 / Math.tan(fovY / 2);
   const nf = 1 / (near - far);
 
@@ -52,7 +52,7 @@ export const getPerspectiveMatrix = (
     [0, 0, 2 * far * near * nf, 0],
   ];
 
-  return Matrix.fromColumnMajor(columnMajor);
+  return Matrix.fromColumnMajor(columnMajor) as Matrix.f64Mat<4, 4>;
 };
 
 const setColorAttribute = (
@@ -129,7 +129,7 @@ export const drawScene = (
   const aspect = glCanvas.clientWidth / glCanvas.clientHeight;
   const zNear = 0.1;
   const zFar = 100.0;
-  let projectionMatrix = Matrix.getIdentity(4) as Matrix.f64Mat<number, number>; //FIX ME
+  let projectionMatrix = Matrix.getIdentity(4);
   const perspectiveMatrix = getPerspectiveMatrix(
     fieldOfView,
     aspect,
@@ -175,7 +175,7 @@ export const drawScene = (
   gl.uniformMatrix4fv(
     programInfo.uniformLocations.modelViewMatrix,
     false,
-    new Float32Array(projectionMatrix.value),
+    new Float32Array(modelViewMatrix.value),
   );
 
   {
