@@ -37,7 +37,7 @@ export const isf64Mat = (value: unknown): value is f64Mat<number, number> => {
 };
 
 /**
- * 列優先行列から、f64Matのインスタンスを得る。
+ * 列優先行列から、`f64Mat`のインスタンスを得る。
  * @param columnMajor 列の配列として表現された行列の内容
  */
 export const fromColumnMajor = (
@@ -129,7 +129,7 @@ export const toRowMajorArray = (matrix: f64Mat<number, number>): number[] => {
  * //TODO このサンプルのテスト
  * const val = matrix.value;
  * const param = toRowMajor2dArray(val);
- * const sameMatrix = new F32Mat(matrix.rowCount * matrix.colCount,param);
+ * const sameMatrix = fromRowMajor(matrix.rowCount * matrix.colCount,param);
  */
 export const toRowMajor2dArray = (
   matrix: f64Mat<number, number>,
@@ -275,8 +275,8 @@ const assertSameSize = (
 /**
  * 行列の指定した2つの行をスワップする
  * @param matrix f64Mat型の行列
- * @param row1 スワップする1つ目の行インデックス
- * @param row2 スワップする2つ目の行インデックス
+ * @param row1 スワップする1つ目の行の 0 ベースインデックス
+ * @param row2 スワップする2つ目の行の 0 ベースインデックス
  *
  */
 const swapRows = (
@@ -296,9 +296,9 @@ const swapRows = (
 /**
  * 指定された行にスカラー倍された別の行を減算する
  *
- * @param matrix - 操作対象の行列。行列は `f64Mat<number, number>` 型で、`value` プロパティに値を格納します。
- * @param targetRowIndex - 減算先の行のインデックス
- * @param sourceRowIndex - 減算元の行のインデックス
+ * @param matrix - 操作対象の行列
+ * @param targetRowIndex - 減算先の行の 0 ベースインデックス
+ * @param sourceRowIndex - 減算元の行の 0 ベースインデックス
  * @param scalar - 減算元の行に掛けるスカラー値
  *
  * @example

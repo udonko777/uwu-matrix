@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "module": "./dist/uwu-matrix.js",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "import": "./dist/uwu-matrix.js"
@@ -14,7 +15,7 @@
   },
   "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "BUILD_DEMO=true vite --host",
     "build:lib": "rimraf build/**/* && tsc && vite build && dts-bundle-generator -o ./build/dist/types/src/index.d.ts ./src/index.ts && copyfiles ./package.json build",
     "build:demo": "BUILD_DEMO=true vite build",
     "build": "npm run build:lib && npm run build:demo",
