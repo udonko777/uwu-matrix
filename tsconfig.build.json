@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src",
+    "demo/draw-scene.ts",
+    "demo/init-buffers.ts",
+    "demo/webgl-demo.ts",
+    "vitest.d.ts"
+  ],
+  "exclude": ["node_modules", ".history/**", "test"]
+}

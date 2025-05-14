@@ -10,7 +10,7 @@ import {
   getIdentity,
   toRowMajorArray,
   toRowMajor2dArray,
-} from "../src/matrix";
+} from "@/matrix";
 
 describe("Matrix basics", () => {
   it("Matrix as a flat Array", () => {
