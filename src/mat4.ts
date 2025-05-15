@@ -217,17 +217,24 @@ export const inverse = (matrix: mat4): mat4 => {
 export const determinant = (matrix: mat4): number => {
 }; */
 
-/**
- * 行列をコンソール上で確認しやすいテキストに整形する TODO
 export const toString = (matrix: mat4): string => {
-}; */
+  return toRowMajor2dArray(matrix)
+    .map(row => row.map(n => n.toFixed(3)).join("\t"))
+    .join("\n");
+};
 
+// 平行移動行列 (4x4)
 export const translationMatrix = (x: number, y: number, z: number): mat4 => {
-  const mat = fMat.getIdentity(4);
-  mat.value[12] = x;
-  mat.value[13] = y;
-  mat.value[14] = z;
-  return mat;
+  return fMat.init(
+    [
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      x, y, z, 1,
+    ],
+    4,
+    4,
+  );
 };
 
 // Z軸回転行列 (4x4)
