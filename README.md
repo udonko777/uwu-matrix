@@ -2,8 +2,6 @@
 
 > a smol matrix library for your big brain math uwu
 
----
-
 ## 🧠 このプロジェクトってなに？ (What is this?)
 
 このプロジェクトは行列演算への理解を深めることを目的として作成されました。
@@ -24,8 +22,6 @@
 - 🎨 WebGL による 3D レンダリング
 - 🎥 カメラ視点の変換や、物体の位置・回転・拡縮の操作
 
----
-
 ## 🧪 実装予定のきのう (Planned Features)
 
 ### 🧷 ベクトル (Vector)
@@ -42,9 +38,7 @@
 - 行列・ベクトルの乗算
 - 各種変換行列（平行移動・回転・拡縮）
 - 射影行列（透視／正射影）
-- ~~逆行列（できたらいいな…）~~
-
----
+- 逆行列（逆の、行列）
 
 ## 🐧 デバッグとかビルドとか (How to Run)
 
@@ -61,7 +55,7 @@ Windows の場合、`package.json` の `dev` スクリプトを以下のよう�
 "dev": "cross-env BUILD_DEMO=true vite --host"
 ```
 
-```bash
+```shell
 npm install --save-dev cross-env
 npm run dev
 ```
