@@ -1,5 +1,5 @@
 // VSCode起動時のtscサーバーにカスタムマッチャを認識させる為の記述
-/// <reference types="../types/vitest.d.ts" />
+/// <reference types="../../types/vitest.d.ts" />
 
 import { describe, expect, it } from "vitest";
 import { fromRowMajor, getIdentity, inverse, multiply } from "@/matrix";
