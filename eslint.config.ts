@@ -39,4 +39,4 @@ export default [
       "prettier/prettier": "off",
     },
   },
-] satisfies Linter.Config[];
+] as unknown as Linter.Config[];
