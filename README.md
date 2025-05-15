@@ -1,54 +1,69 @@
-# このプロジェクトについて
+# 🌸 uwu-matrix 💫
 
-このプロジェクトは簡易な行列演算ライブラリを実装することで、行列演算への理解を深めることを目的として作成されました。
+> a smol matrix library for your big brain math uwu
+
+---
+
+## 🧠 このプロジェクトってなに？ (What is this?)
+
+このプロジェクトは行列演算への理解を深めることを目的として作成されました。
 
 実用的なライブラリの作成を目指すものではありません。
 学習目的であり、数学的理解を優先して作成します。
 
-## プロジェクト目標
+## 🎯 めざすこと (Goals)
 
 `WebGL` を利用した CG レンダリングのために、最低限必要な行列演算を提供することを最終目標としています。
 
 簡単のため、パフォーマンス面のチューニングは行わないものとします。ただし、行列演算の理解を深めることを目的としていることから、数学的な手法を用いた演算の効率化は可能なら取り入れてよいものとします。
 
-## 想定する利用シーン
+## 🧩 つかうシーン (Use Cases)
 
 このライブラリは以下のようなシーンを想定しています：
 
-- WebGL による 3D レンダリング
-- カメラ視点やオブジェクトの位置・回転・拡縮の変換
+- 🎨 WebGL による 3D レンダリング
+- 🎥 カメラ視点の変換や、物体の位置・回転・拡縮の操作
 
-## 実装予定の機能
+---
 
-以下のベクトル／行列演算を段階的に実装していきます。
+## 🧪 実装予定のきのう (Planned Features)
 
-### ベクトル関連
+### 🧷 ベクトル (Vector)
 
-- `Vec2` / `Vec3` / `Vec4` の定義
-- ベクトルの加算・減算
-- スカラー倍
-- 内積（ドット積）
-- 外積（クロス積、Vec3のみ）
-- ベクトルの正規化
-- 長さ（ノルム）の計算
+- `Vec2` / `Vec3` / `Vec4`
+- 加算・減算・スカラー倍
+- ドット積・クロス積（Vec3限定）
+- 正規化・ノルム
 
-### 行列関連
+### 🧷 行列 (Matrix)
 
-- `Mat3` / `Mat4` の定義
-- 単位行列の生成
-- 行列同士の乗算
-- ベクトルとの乗算
-- 平行移動行列（translation matrix）
-- 回転行列（rotation matrix）
-- 拡大縮小行列（scaling matrix）
-- 透視投影行列（perspective projection matrix）
-- 正射影行列（orthographic projection matrix）
-- 逆行列の計算（dekiruka wakarimasen）
+- `Mat3` / `Mat4`
+- 単位行列
+- 行列・ベクトルの乗算
+- 各種変換行列（平行移動・回転・拡縮）
+- 射影行列（透視／正射影）
+- ~~逆行列（できたらいいな…）~~
 
-## デバッグ方法
+---
 
-Linuxでのビルドを推奨します。
+## 🐧 デバッグとかビルドとか (How to Run)
 
-1. `npm install`
-2. `npm run dev` して `localhost:<port>/` を開く  
-   ( ビルドの際、環境変数を設定する必要があるので、 windows 上でビルドする際は、 package.json を編集して、`"dev": "cross-env BUILD_DEMO=true vite --host"` に書き換えてください )
+Linux 環境推奨です（でも Windows でもがんばれば動くよ）。
+
+```bash
+npm install
+npm run dev
+```
+
+Windows の場合、`package.json` の `dev` スクリプトを以下のように修正してください：
+
+```json
+"dev": "cross-env BUILD_DEMO=true vite --host"
+```
+
+```bash
+npm install --save-dev cross-env
+npm run dev
+```
+
+その後、`localhost:<port>/` を開いてください！
