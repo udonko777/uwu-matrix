@@ -51,14 +51,14 @@ export const getIdentity = (): mat4 => {
 };
 
 export const toRowMajorArray = (matrix: mat4): number[] => {
-  const rowMajor = new Array(16).fill(0);
+  const result = new Array(16).fill(0);
 
-  for (let col = 0; col < 4; col++) {
-    for (let row = 0; row < 4; row++) {
-      rowMajor[col * 4 + row] = matrix.value[row * 4 + col];
+  for (let row = 0; row < matrix.rowCount; row++) {
+    for (let col = 0; col < matrix.colCount; col++) {
+      result[row * 4 + col] = matrix.value[col * matrix.rowCount + row];
     }
   }
-  return rowMajor;
+  return result;
 };
 
 export const toRowMajor2dArray = (matrix: mat4): number[][] => {
@@ -221,3 +221,64 @@ export const determinant = (matrix: mat4): number => {
  * 行列をコンソール上で確認しやすいテキストに整形する TODO
 export const toString = (matrix: mat4): string => {
 }; */
+
+export const translationMatrix = (x: number, y: number, z: number): mat4 => {
+  const mat = fMat.getIdentity(4);
+  mat.value[12] = x;
+  mat.value[13] = y;
+  mat.value[14] = z;
+  return mat;
+};
+
+// Z軸回転行列 (4x4)
+export const rotateZMatrix = (rad: number): mat4 => {
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  return fromRowMajor([
+    [cos, -sin, 0, 0],
+    [sin, cos, 0, 0],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1],
+  ]);
+};
+
+/**
+ * 透視射影行列を生成する
+ * @param fovY 垂直方向の視野角（ラジアン）
+ * @param aspect アスペクト比（横 / 縦）
+ * @param near 最近接距離（0 より大きい）
+ * @param far 最遠距離（near より大きい）
+ */
+export const getPerspectiveMatrix = (
+  fovY: number,
+  aspect: number,
+  near: number,
+  far: number,
+): mat4 => {
+  const f = 1.0 / Math.tan(fovY / 2);
+  const nf = 1 / (near - far);
+
+  // 列優先で並べる
+  return fMat.init(
+    [
+      f / aspect,
+      0,
+      0,
+      0,
+      0,
+      f,
+      0,
+      0,
+      0,
+      0,
+      (far + near) * nf,
+      -1,
+      0,
+      0,
+      2 * far * near * nf,
+      0,
+    ],
+    4,
+    4,
+  );
+};
