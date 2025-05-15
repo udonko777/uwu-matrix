@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  fromColumnMajor as createDynamicMatrix,
   fromRowMajor,
   valueAt,
   add,
@@ -13,19 +12,20 @@ import {
 } from "@/matrix";
 
 describe("Matrix basics", () => {
-  it("Matrix as a flat Array", () => {
-    const a = createDynamicMatrix([
-      [1, 3, 5],
-      [2, 4, 6],
+  it("Matrix.value", () => {
+    const a = fromRowMajor([
+      [1, 2],
+      [3, 4],
+      [5, 6],
     ]);
     expect(a.value).toEqual(new Float64Array([1, 3, 5, 2, 4, 6]));
   });
 
   it("Matrix.valueAt", () => {
-    const a = createDynamicMatrix([
-      [1, 2, 3],
-      [4, 5, 6],
-      [7, 8, 9],
+    const a = fromRowMajor([
+      [1, 4, 7],
+      [2, 5, 8],
+      [3, 6, 9],
     ]);
     expect(valueAt(a, 0, 1)).toEqual(4);
     expect(valueAt(a, 1, 2)).toEqual(8);
@@ -34,67 +34,67 @@ describe("Matrix basics", () => {
 
 describe("Matrix.add", () => {
   it("adds two 2x2 matrices correctly", () => {
-    const a = createDynamicMatrix([
-      [1, 2],
-      [3, 4],
+    const a = fromRowMajor([
+      [1, 3],
+      [2, 4],
     ]);
-    const b = createDynamicMatrix([
-      [5, 6],
-      [7, 8],
+    const b = fromRowMajor([
+      [5, 7],
+      [6, 8],
     ]);
     const result = add(a, b);
     expect(result.value).toEqual(new Float64Array([6, 8, 10, 12]));
   });
 
   it("throws error when sizes do not match", () => {
-    const a = createDynamicMatrix([
-      [1, 2],
-      [3, 4],
+    const a = fromRowMajor([
+      [1, 3],
+      [2, 4],
     ]);
-    const b = createDynamicMatrix([[1, 2, 3]]);
+    const b = fromRowMajor([[1], [2], [3]]);
     expect(() => add(a, b)).toThrow("Matrix size mismatch");
   });
 });
 
 describe("Matrix.subtract", () => {
   it("subtracts two 2x2 matrices correctly", () => {
-    const a = createDynamicMatrix([
+    const a = fromRowMajor([
       [10, 10],
       [10, 10],
     ]);
-    const b = createDynamicMatrix([
-      [5, 6],
-      [7, 8],
+    const b = fromRowMajor([
+      [5, 7],
+      [6, 8],
     ]);
     const result = subtract(a, b);
     expect(result.value).toEqual(new Float64Array([5, 4, 3, 2]));
   });
 
   it("throws error when sizes do not match", () => {
-    const a = createDynamicMatrix([
-      [1, 2],
-      [3, 4],
+    const a = fromRowMajor([
+      [1, 3],
+      [2, 4],
     ]);
-    const b = createDynamicMatrix([[1, 2, 3]]);
+    const b = fromRowMajor([[1, 2, 3]]);
     expect(() => subtract(a, b)).toThrow("Matrix size mismatch");
   });
 });
 
 describe("Matrix.multiplyScalar", () => {
   it("multiplies a 2x2 matrix by a scalar correctly", () => {
-    const a = createDynamicMatrix([
-      [1, 2],
-      [3, 4],
+    const a = fromRowMajor([
+      [1, 3],
+      [2, 4],
     ]);
     const result = multiplyScalar(a, 2);
     expect(result.value).toEqual(new Float64Array([2, 4, 6, 8]));
   });
 
   it("multiplies a 3x3 matrix by a scalar correctly", () => {
-    const a = createDynamicMatrix([
-      [1, 2, 3],
-      [4, 5, 6],
-      [7, 8, 9],
+    const a = fromRowMajor([
+      [1, 4, 7],
+      [2, 5, 8],
+      [3, 6, 9],
     ]);
     const result = multiplyScalar(a, 3);
     expect(result.value).toEqual(
@@ -105,9 +105,9 @@ describe("Matrix.multiplyScalar", () => {
 
 describe("Matrix.getClone", () => {
   it("creates a deep clone of a 2x2 matrix", () => {
-    const a = createDynamicMatrix([
-      [1, 2],
-      [3, 4],
+    const a = fromRowMajor([
+      [1, 3],
+      [2, 4],
     ]);
     const clone = getClone(a);
     expect(clone.value).toEqual(new Float64Array(a.value));
@@ -115,9 +115,9 @@ describe("Matrix.getClone", () => {
   });
 
   it("modifying the clone does not affect the original matrix", () => {
-    const a = createDynamicMatrix([
-      [1, 2],
-      [3, 4],
+    const a = fromRowMajor([
+      [1, 3],
+      [2, 4],
     ]);
     const clone = getClone(a);
     const modifiedClone = multiplyScalar(clone, 2);
