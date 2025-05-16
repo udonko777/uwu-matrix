@@ -32,7 +32,11 @@ export default [
       parser: tseslint.parser,
     },
     rules: {
-      "prettier/prettier": "warn",
+      // 1 エディタのデフォルトのフォーマッターと上手く連携が出来ず、警告が出るたびに手動での調整が必要だった
+      // 2 行列を配列で表現する際、どうしても独自のフォーマットを使いたい (特にテストデータ)
+      // 3 そもそもこのプロジェクトのコードはおそらく私一人しか見ない
+      // という理由でprettierを無効化しました。
+      "prettier/prettier": "off",
     },
   },
-] satisfies Linter.Config[];
+] as unknown as Linter.Config[];

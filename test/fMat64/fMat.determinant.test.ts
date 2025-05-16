@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { determinant, fromRowMajor, getIdentity } from "../src/matrix";
+import { determinant, fromRowMajor, getIdentity } from "@/matrix";
 
 describe("determinant", () => {
   it("should return 1 for an identity matrix", () => {

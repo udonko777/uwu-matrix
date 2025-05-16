@@ -16,7 +16,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "BUILD_DEMO=true vite --host",
-    "build:lib": "rimraf build/**/* && tsc && vite build && dts-bundle-generator -o ./build/dist/types/src/index.d.ts ./src/index.ts && copyfiles ./package.json build",
+    "build:lib": "rimraf build/**/* && tsc --project tsconfig.build.json && vite build && dts-bundle-generator -o ./build/dist/types/src/index.d.ts ./src/index.ts && copyfiles ./package.json build",
     "build:demo": "BUILD_DEMO=true vite build",
     "build": "npm run build:lib && npm run build:demo",
     "preview": "vite preview --port 8080",

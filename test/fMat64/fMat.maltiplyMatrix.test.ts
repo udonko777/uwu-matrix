@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromRowMajor, multiply } from "../src/matrix";
+import { fromRowMajor, multiply } from "@/matrix";
 
 describe("multiplyMatrix", () => {
   it("should multiply two 2x2 matrices correctly", () => {

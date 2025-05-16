@@ -6,7 +6,7 @@
 import { initBuffers } from "./init-buffers";
 import { drawScene } from "./draw-scene";
 
-let squareRotation: number = 0.0;
+let cubeRotation = 0.0;
 let deltaTime: number = 0;
 
 // 頂点シェーダーのプログラム
@@ -95,8 +95,8 @@ const main = () => {
     deltaTime = now - then;
     then = now;
 
-    drawScene(gl, programInfo, buffers, squareRotation);
-    squareRotation += deltaTime;
+    drawScene(gl, programInfo, buffers, cubeRotation);
+    cubeRotation += deltaTime;
 
     requestAnimationFrame(render);
   };

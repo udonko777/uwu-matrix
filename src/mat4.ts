@@ -27,6 +27,10 @@ export const fromRowMajor = (rowMajor: number[][]): mat4 => {
   }
   const rowCount = rowMajor.length;
   const colCount = rowMajor[0].length;
+  
+  if (rowCount !== 4 || colCount !== 4) {
+    throw new Error("Input must be a 4x4 matrix");
+  }
   const value = new Float64Array(rowCount * colCount);
 
   for (let col = 0; col < colCount; col++) {
@@ -51,14 +55,14 @@ export const getIdentity = (): mat4 => {
 };
 
 export const toRowMajorArray = (matrix: mat4): number[] => {
-  const rowMajor = new Array(16).fill(0);
+  const result = new Array(16).fill(0);
 
-  for (let col = 0; col < 4; col++) {
-    for (let row = 0; row < 4; row++) {
-      rowMajor[col * 4 + row] = matrix.value[row * 4 + col];
+  for (let row = 0; row < matrix.rowCount; row++) {
+    for (let col = 0; col < matrix.colCount; col++) {
+      result[row * 4 + col] = matrix.value[col * matrix.rowCount + row];
     }
   }
-  return rowMajor;
+  return result;
 };
 
 export const toRowMajor2dArray = (matrix: mat4): number[][] => {
@@ -217,7 +221,107 @@ export const inverse = (matrix: mat4): mat4 => {
 export const determinant = (matrix: mat4): number => {
 }; */
 
-/**
- * 行列をコンソール上で確認しやすいテキストに整形する TODO
 export const toString = (matrix: mat4): string => {
-}; */
+  return toRowMajor2dArray(matrix)
+    .map(row => row.map(n => n.toFixed(3)).join("\t"))
+    .join("\n");
+};
+
+// 平行移動行列 (4x4)
+export const translationMatrix = (x: number, y: number, z: number): mat4 => {
+  return fMat.init(
+    [
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      x, y, z, 1,
+    ],
+    4,
+    4,
+  );
+};
+
+// X軸回転行列 (4x4)
+export const rotateXMatrix = (rad: number): mat4 => {
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  return fMat.init(
+    [
+      1, 0, 0, 0,
+      0, cos, -sin, 0,
+      0, sin, cos, 0, 
+      0, 0, 0, 1,
+    ],
+    4,
+    4,
+  );
+}
+
+// Y軸回転行列 (4x4)
+export const rotateYMatrix = (rad: number): mat4 => {
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  return fMat.init(
+    [
+      cos, 0, sin, 0,
+      0, 1, 0, 0,
+      -sin, 0, cos, 0,
+      0, 0, 0, 1,
+    ],
+    4,
+    4,
+  );
+}
+
+// Z軸回転行列 (4x4)
+export const rotateZMatrix = (rad: number): mat4 => {
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  return fromRowMajor([
+    [cos, -sin, 0, 0],
+    [sin, cos, 0, 0],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1],
+  ]);
+};
+
+/**
+ * 透視射影行列を生成する
+ * @param fovY 垂直方向の視野角（ラジアン）
+ * @param aspect アスペクト比（横 / 縦）
+ * @param near 最近接距離（0 より大きい）
+ * @param far 最遠距離（near より大きい）
+ */
+export const getPerspectiveMatrix = (
+  fovY: number,
+  aspect: number,
+  near: number,
+  far: number,
+): mat4 => {
+  const f = 1.0 / Math.tan(fovY / 2);
+  const nf = 1 / (near - far);
+
+  // 列優先で並べる
+  return fMat.init(
+    [
+      f / aspect,
+      0,
+      0,
+      0,
+      0,
+      f,
+      0,
+      0,
+      0,
+      0,
+      (far + near) * nf,
+      -1,
+      0,
+      0,
+      2 * far * near * nf,
+      0,
+    ],
+    4,
+    4,
+  );
+};
