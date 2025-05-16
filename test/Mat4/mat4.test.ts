@@ -84,8 +84,9 @@ describe("mat4: 4x4 Matrix Tests", () => {
 
   it("creates a Z-axis rotation matrix", () => {
     const rotation = rotateZMatrix(Math.PI / 2);
-    expect(rotation.value).toEqual(
+    expect(rotation.value).toBeCloseMatrix(
       new Float64Array([0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+    1e-16
     );
   });
 

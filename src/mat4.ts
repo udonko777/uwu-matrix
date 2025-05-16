@@ -27,6 +27,10 @@ export const fromRowMajor = (rowMajor: number[][]): mat4 => {
   }
   const rowCount = rowMajor.length;
   const colCount = rowMajor[0].length;
+  
+  if (rowCount !== 4 || colCount !== 4) {
+    throw new Error("Input must be a 4x4 matrix");
+  }
   const value = new Float64Array(rowCount * colCount);
 
   for (let col = 0; col < colCount; col++) {
