@@ -241,6 +241,38 @@ export const translationMatrix = (x: number, y: number, z: number): mat4 => {
   );
 };
 
+// X軸回転行列 (4x4)
+export const rotateXMatrix = (rad: number): mat4 => {
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  return fMat.init(
+    [
+      1, 0, 0, 0,
+      0, cos, -sin, 0,
+      0, sin, cos, 0, 
+      0, 0, 0, 1,
+    ],
+    4,
+    4,
+  );
+}
+
+// Y軸回転行列 (4x4)
+export const rotateYMatrix = (rad: number): mat4 => {
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  return fMat.init(
+    [
+      cos, 0, sin, 0,
+      0, 1, 0, 0,
+      -sin, 0, cos, 0,
+      0, 0, 0, 1,
+    ],
+    4,
+    4,
+  );
+}
+
 // Z軸回転行列 (4x4)
 export const rotateZMatrix = (rad: number): mat4 => {
   const cos = Math.cos(rad);
