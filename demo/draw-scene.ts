@@ -3,47 +3,6 @@ import * as mat4 from "@/mat4"
 import { programInfo } from "./webgl-demo";
 import { buffers } from "./init-buffers";
 
-// これらの行列演算は、本来はライブラリ側で実装されているべきだが
-// 一旦、デモを動作させる為アプリケーションで実装することにした
-export const translationMatrix = (
-  x: number,
-  y: number,
-  z: number,
-): Matrix.f64Mat<number, number> => {
-  const mat = Matrix.getIdentity(4);
-  mat.value[12] = x;
-  mat.value[13] = y;
-  mat.value[14] = z;
-  return mat;
-};
-
-/**
- * 透視射影行列を生成する
- * @param fovY 垂直方向の視野角（ラジアン）
- * @param aspect アスペクト比（横 / 縦）
- * @param near 最近接距離（0 より大きい）
- * @param far 最遠距離（near より大きい）
- */
-export const getPerspectiveMatrix = (
-  fovY: number,
-  aspect: number,
-  near: number,
-  far: number,
-): Matrix.f64Mat<4, 4> => {
-  const f = 1.0 / Math.tan(fovY / 2);
-  const nf = 1 / (near - far);
-
-  // 列優先で並べる
-  const columnMajor = [
-    [f / aspect, 0, 0, 0],
-    [0, f, 0, 0],
-    [0, 0, (far + near) * nf, -1],
-    [0, 0, 2 * far * near * nf, 0],
-  ];
-
-  return Matrix.fromColumnMajor(columnMajor) as Matrix.f64Mat<4, 4>;
-};
-
 const setColorAttribute = (
   gl: WebGLRenderingContext,
   buffers: buffers,
@@ -116,7 +75,7 @@ export const drawScene = (
   const zNear = 0.1;
   const zFar = 100.0;
   let projectionMatrix = Matrix.getIdentity(4);
-  const perspectiveMatrix = getPerspectiveMatrix(
+  const perspectiveMatrix = mat4.getPerspectiveMatrix(
     fieldOfView,
     aspect,
     zNear,
@@ -132,7 +91,7 @@ export const drawScene = (
   // そして描写位置を正方形を描写し始めたい位置に少しだけ動かす
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    translationMatrix(-0.0, 0.0, -6.0) as Matrix.f64Mat<4, 4>,
+    mat4.translationMatrix(-0.0, 0.0, -6.0)
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
