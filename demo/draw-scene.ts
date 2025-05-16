@@ -66,8 +66,9 @@ const setColorAttribute = (
   gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
 };
 
-// WebGL に、位置バッファーから位置を
-// vertexPosition 属性に引き出す方法を指示する。
+/**
+ *WebGL に、位置バッファーから位置をvertexPosition 属性に引き出す方法を指示する。
+ */
 const setPositionAttribute = (
   gl: WebGLRenderingContext,
   buffers: buffers,
@@ -106,16 +107,12 @@ export const drawScene = (
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  // カメラで遠近感を再現するために使用される特殊な行列、
-  // 視点マトリクスを作成する。
-  // 視野角は 45 度、幅と高さの比率はキャンバスの
-  // 表示サイズに合わせる。
-  // カメラから 0.1 単位から 100 単位までのオブジェクトのみを
-  // 表示するようにする。
-
+  // カメラで遠近感を再現するために使用される特殊な行列、視点マトリクスを作成する。
+  // 視野角は 45 度、幅と高さの比率はキャンバスの表示サイズに合わせる。
   const fieldOfView = (45 * Math.PI) / 180; // ラジアンにする
   const glCanvas = gl.canvas as HTMLCanvasElement;
   const aspect = glCanvas.clientWidth / glCanvas.clientHeight;
+  // カメラから 0.1 単位から 100 単位までのオブジェクトのみを表示するようにする。
   const zNear = 0.1;
   const zFar = 100.0;
   let projectionMatrix = Matrix.getIdentity(4);
@@ -127,14 +124,12 @@ export const drawScene = (
   );
 
   // 受け取り先を取る
-  //mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
   projectionMatrix = Matrix.multiply(projectionMatrix, perspectiveMatrix);
 
   // 描写位置をシーンの中央である "identity" ポイントにセットする
   let modelViewMatrix = mat4.getIdentity();
 
   // そして描写位置を正方形を描写し始めたい位置に少しだけ動かす
-  //mat4.translate(modelViewMatrix, modelViewMatrix,[-0.0, 0.0, -6.0],);
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
     translationMatrix(-0.0, 0.0, -6.0) as Matrix.f64Mat<4, 4>,
@@ -151,7 +146,7 @@ export const drawScene = (
     modelViewMatrix,
     mat4.rotateXMatrix(cubeRotation * 0.3)
   )
-  
+
   // WebGL にどのように座標バッファーから座標を
   // vertexPosition 属性に引き出すか伝える。
   setPositionAttribute(gl, buffers, programInfo);
@@ -162,7 +157,6 @@ export const drawScene = (
   // WebGL に、描画にこのプログラムを使用するよう伝える
   gl.useProgram(programInfo.program);
 
-  console.debug(projectionMatrix.value);
   console.debug(modelViewMatrix.value);
 
   // シェーダーユニフォームを設定

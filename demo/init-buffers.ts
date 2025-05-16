@@ -125,7 +125,6 @@ const initPositionBuffer = (gl: WebGLRenderingContext) => {
     -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
   ];
 
-
   // 形を作るために頂点座標のリストを WebGL に渡す。
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
