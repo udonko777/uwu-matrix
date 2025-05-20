@@ -27,6 +27,6 @@
     "demo/*.ts",
     "test",
     "vitest.d.ts"
-  ],
+, "demo/p1/webgl-demo.ts", "demo/p1/draw-scene.ts", "demo/p1/init-buffers.ts"  ],
   "exclude": ["node_modules", ".history/**"]
 }
