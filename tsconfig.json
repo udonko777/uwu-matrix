@@ -24,9 +24,7 @@
   },
   "include": [
     "src",
-    "demo/draw-scene.ts",
-    "demo/init-buffers.ts",
-    "demo/webgl-demo.ts",
+    "demo/*.ts",
     "test",
     "vitest.d.ts"
   ],
