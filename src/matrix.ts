@@ -157,9 +157,8 @@ const toPrimitive = function (
 };
 
 /**
- * 空の`f64Mat`を返す\
- * ライブラリ内でのみ使用
- * @example
+ * mat4を直接初期化する。
+ * valueが列優先であることに注意
  */
 export const init = <R extends number, C extends number>(
   value: ArrayLike<number> = [],
