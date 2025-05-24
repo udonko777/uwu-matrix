@@ -2,13 +2,20 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@@/*": ["./*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@@/*": [
+        "./*"
+      ]
     },
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ESNext", "DOM"],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "moduleResolution": "Node",
     "strict": true,
     "sourceMap": true,
@@ -24,9 +31,12 @@
   },
   "include": [
     "src",
-    "demo/*.ts",
     "test",
-    "vitest.d.ts"
-, "demo/p1/webgl-demo.ts", "demo/p1/draw-scene.ts", "demo/p1/init-buffers.ts"  ],
-  "exclude": ["node_modules", ".history/**"]
+    "vitest.d.ts",
+    "demo/*/*.ts",
+  ],
+  "exclude": [
+    "node_modules",
+    ".history/**"
+  ]
 }
