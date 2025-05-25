@@ -18,16 +18,10 @@ const main = () => {
   c.width = 500;
   c.height = 300;
 
-  const gl: WebGLRenderingContext | null = getCanvas().getContext('webgl');
+  const gl: WebGLRenderingContext | null = c.getContext('webgl');
   if (!gl) {
     throw new Error(`webGL not supported`);
   }
-
-  // canvasを初期化する色を設定する
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  // canvasを初期化する際の深度を設定する
-  gl.clearDepth(1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   const vertexShaderSource = `
 attribute vec3 position;
@@ -92,6 +86,24 @@ void main(void){
   gl.enableVertexAttribArray(attLocation[1]);
   gl.vertexAttribPointer(attLocation[1], attStride[1], gl.FLOAT, false, 0, 0);
 
+
+  requestAnimationFrame(() => {
+    frame(gl, prg, c, 0);
+  })
+}
+
+/**
+ * メインフレーム
+ */
+const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElement, frameCount: number) => {
+
+  // init
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearDepth(1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  const rad = (frameCount % 360) * Math.PI / 180;
+
   const identity = mat4.getIdentity();
 
   // 各種行列の生成と初期化
@@ -102,18 +114,27 @@ void main(void){
 
   mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
 
-  // 各行列を掛け合わせ座標変換行列を完成させる
-  let mvpMatrix = [pMatrix, vMatrix, mMatrix].reduce((a, b) => mat4.multiply(a, b));
+  const vpMatrix = [pMatrix, vMatrix].reduce((a, b) => mat4.multiply(a, b));
 
   // uniformLocationの取得
   const uniLocation = gl.getUniformLocation(prg, 'mvpMatrix');
 
+  // モデル1は円の軌道を描き移動する
+  const x = Math.cos(rad);
+  const y = Math.sin(rad);
+  mMatrix = mat4.multiply(mat4.getIdentity(), mat4.translationMatrix(x, y + 1.0, 0.0));
+
   // uniformLocationへ座標変換行列を登録し描画する(一つ目のモデル)
+  let mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
   gl.uniformMatrix4fv(uniLocation, false, Float32Array.from(mvpMatrix.value));
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-  mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(-3.0, 0.0, 0.0));
-  mvpMatrix = [pMatrix, vMatrix, mMatrix].reduce((a, b) => mat4.multiply(a, b));
+  // モデル2はY軸を中心に回転する
+  mMatrix = mat4.getIdentity();
+  mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.0, -1.0, 0.0));
+  mMatrix = mat4.multiply(mMatrix, mat4.rotateYMatrix(rad));
+
+  mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
 
   // uniformLocationへ座標変換行列を登録し描画する(二つ目のモデル)
   gl.uniformMatrix4fv(uniLocation, false, Float32Array.from(mvpMatrix.value));
@@ -121,6 +142,10 @@ void main(void){
 
   // コンテキストの再描画
   gl.flush();
+
+  requestAnimationFrame(() => {
+    frame(gl, prg, c, ++frameCount);
+  })
 }
 
 /**
