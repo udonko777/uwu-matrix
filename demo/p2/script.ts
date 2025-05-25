@@ -63,39 +63,38 @@ void main(void){
   const vertex_position = [
     0.0, 1.0, 0.0,
     1.0, 0.0, 0.0,
-    -1.0, 0.0, 0.0
+    -1.0, 0.0, 0.0,
+    0.0, -1.0, 0.0
   ];
 
   const vertex_color = [
     1.0, 0.0, 0.0, 1.0,
     0.0, 1.0, 0.0, 1.0,
-    0.0, 0.0, 1.0, 1.0
+    0.0, 0.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0
   ];
 
   // VBOの生成
-  const position_vbo = createVbo(gl, vertex_position);
-  const color_vbo = createVbo(gl, vertex_color);
+  const pos_vbo = createVbo(gl, vertex_position);
+  const col_vbo = createVbo(gl, vertex_color);
 
-  // VBOをバインドし登録(位置情報)
-  gl.bindBuffer(gl.ARRAY_BUFFER, position_vbo);
-  gl.enableVertexAttribArray(attLocation[0]);
-  gl.vertexAttribPointer(attLocation[0], attStride[0], gl.FLOAT, false, 0, 0);
+  setAttribute(gl, [pos_vbo, col_vbo], attLocation, attStride);
 
-  // VBOをバインドし登録(色情報)
-  gl.bindBuffer(gl.ARRAY_BUFFER, color_vbo);
-  gl.enableVertexAttribArray(attLocation[1]);
-  gl.vertexAttribPointer(attLocation[1], attStride[1], gl.FLOAT, false, 0, 0);
+  const iboSource = [0, 1, 2, 1, 2, 3];
 
+  const ibo = createIbo(gl, iboSource);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
 
   requestAnimationFrame(() => {
-    frame(gl, prg, c, 0);
+    frame(gl, prg, c, 0, iboSource.length);
   })
 }
 
 /**
- * メインフレーム
+ * メインループ。
+ * 引数の数が明らかに多すぎるが、これらは後々レンダラー自身が状態として管理できるようにする。
  */
-const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElement, frameCount: number) => {
+const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElement, frameCount: number, iboSourceLength: number) => {
 
   // init
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -108,43 +107,30 @@ const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElemen
 
   // 各種行列の生成と初期化
   let mMatrix = identity;
+  let mvpMatrix = identity;
 
-  const vMatrix = mat4.lookAt([0.0, 0.0, 3.0], [0, 0, 0], [0, 1, 0]);
-  const pMatrix = mat4.getPerspectiveMatrix(90, c.width / c.height, 0.1, 100);
+  const vMatrix = mat4.lookAt([0.0, 0.0, 5.0], [0, 0, 0], [0, 1, 0]);
+  const pMatrix = mat4.getPerspectiveMatrix(45, c.width / c.height, 0.1, 100);
 
   mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
 
-  const vpMatrix = [pMatrix, vMatrix].reduce((a, b) => mat4.multiply(a, b));
+  const vpMatrix = mat4.multiply(pMatrix, vMatrix);
 
   // uniformLocationの取得
   const uniLocation = gl.getUniformLocation(prg, 'mvpMatrix');
 
-  // モデル1は円の軌道を描き移動する
-  const x = Math.cos(rad);
-  const y = Math.sin(rad);
-  mMatrix = mat4.multiply(mat4.getIdentity(), mat4.translationMatrix(x, y + 1.0, 0.0));
-
-  // uniformLocationへ座標変換行列を登録し描画する(一つ目のモデル)
-  let mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
-  gl.uniformMatrix4fv(uniLocation, false, Float32Array.from(mvpMatrix.value));
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-  // モデル2はY軸を中心に回転する
-  mMatrix = mat4.getIdentity();
-  mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.0, -1.0, 0.0));
-  mMatrix = mat4.multiply(mMatrix, mat4.rotateYMatrix(rad));
-
+  // モデル座標変換行列の生成
+  mMatrix = mat4.multiply(mat4.getIdentity(), mat4.rotateYMatrix(rad));
   mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
-
-  // uniformLocationへ座標変換行列を登録し描画する(二つ目のモデル)
   gl.uniformMatrix4fv(uniLocation, false, Float32Array.from(mvpMatrix.value));
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  gl.drawElements(gl.TRIANGLES, iboSourceLength, gl.UNSIGNED_SHORT, 0);
 
   // コンテキストの再描画
   gl.flush();
 
   requestAnimationFrame(() => {
-    frame(gl, prg, c, ++frameCount);
+    frame(gl, prg, c, ++frameCount, iboSourceLength);
   })
 }
 
@@ -212,4 +198,36 @@ const createVbo = (gl: WebGLRenderingContext, data: ArrayLike<number>) => {
 
   // 生成した VBO を返して終了
   return vbo;
+}
+/*
+VBOをバインドし登録する関数
+*/
+const setAttribute = (gl: WebGLRenderingContext, vbo: WebGLBuffer[], attL: number[], attS: number[]) => {
+  for (const [i] of vbo.entries()) {
+    // バッファをバインドする
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
+    // attributeLocationを有効にする
+    gl.enableVertexAttribArray(attL[i]);
+    // attributeLocationを通知し登録する
+    gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
+  }
+}
+/**
+IBOを生成する関数
+*/
+function createIbo(gl: WebGLRenderingContext, data: ArrayLike<number>): WebGLBuffer {
+
+  const ibo = gl.createBuffer();
+
+  // バッファをバインドする
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+
+  // バッファにデータをセット
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW);
+
+  // バッファのバインドを無効化
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+  // 生成したIBOを返して終了
+  return ibo;
 }
