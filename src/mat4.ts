@@ -27,7 +27,7 @@ export const fromRowMajor = (rowMajor: number[][]): mat4 => {
   }
   const rowCount = rowMajor.length;
   const colCount = rowMajor[0].length;
-  
+
   if (rowCount !== 4 || colCount !== 4) {
     throw new Error("Input must be a 4x4 matrix");
   }
@@ -249,7 +249,7 @@ export const rotateXMatrix = (rad: number): mat4 => {
     [
       1, 0, 0, 0,
       0, cos, -sin, 0,
-      0, sin, cos, 0, 
+      0, sin, cos, 0,
       0, 0, 0, 1,
     ],
     4,
@@ -284,6 +284,70 @@ export const rotateZMatrix = (rad: number): mat4 => {
     [0, 0, 0, 1],
   ]);
 };
+
+/**
+ * 視点変換行列を作成する。 \
+ * upがzと平行であるか、ゼロベクトルだとxがNaNになる
+ * @param eye 
+ * @param target 
+ * @param up 
+ * @returns 
+ */
+export const lookAt = (
+  eye: [number, number, number],
+  target: [number, number, number],
+  up: [number, number, number],
+): mat4 => {
+  const z = [
+    eye[0] - target[0],
+    eye[1] - target[1],
+    eye[2] - target[2],
+  ];
+  const zLen = Math.sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2]);
+  z[0] /= zLen;
+  z[1] /= zLen;
+  z[2] /= zLen;
+
+  const x = [
+    up[1] * z[2] - up[2] * z[1],
+    up[2] * z[0] - up[0] * z[2],
+    up[0] * z[1] - up[1] * z[0],
+  ];
+  const xLen = Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
+  x[0] /= xLen;
+  x[1] /= xLen;
+  x[2] /= xLen;
+
+  const y = [
+    z[1] * x[2] - z[2] * x[1],
+    z[2] * x[0] - z[0] * x[2],
+    z[0] * x[1] - z[1] * x[0],
+  ];
+
+  // 列優先で並べる
+  return fMat.init(
+    [
+      x[0],
+      y[0],
+      z[0],
+      0,
+      x[1],
+      y[1],
+      z[1],
+      0,
+      x[2],
+      y[2],
+      z[2],
+      0,
+      -(x[0] * eye[0] + x[1] * eye[1] + x[2] * eye[2]),
+      -(y[0] * eye[0] + y[1] * eye[1] + y[2] * eye[2]),
+      -(z[0] * eye[0] + z[1] * eye[1] + z[2] * eye[2]),
+      1,
+    ],
+    4,
+    4,
+  );
+}
 
 /**
  * 透視射影行列を生成する
