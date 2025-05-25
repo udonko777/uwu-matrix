@@ -31,18 +31,24 @@ const main = () => {
 
   const vertexShaderSource = `
 attribute vec3 position;
+attribute vec4 color;
 uniform   mat4 mvpMatrix;
+varying   vec4 vColor;
 
 void main(void){
-  gl_Position = mvpMatrix * vec4(position, 1.0);
+    vColor = color;
+    gl_Position = mvpMatrix * vec4(position, 1.0);
 }
 `
 
   const fragmentShaderSource = `
+precision mediump float;
+
+varying vec4 vColor;
+
 void main(void){
-    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-}
-`
+    gl_FragColor = vColor;
+}`
 
   const v_shader = createShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
   const f_shader = createShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
@@ -50,48 +56,67 @@ void main(void){
   // プログラムオブジェクトの生成とリンク
   const prg = createProgram(gl, v_shader, f_shader);
 
-  const attLocation = gl.getAttribLocation(prg, 'position');
+  // attributeLocationを配列に取得
+  const attLocation = new Array(2);
+  attLocation[0] = gl.getAttribLocation(prg, 'position');
+  attLocation[1] = gl.getAttribLocation(prg, 'color');
 
-  // attributeの要素数(この場合は xyz の3要素)
-  const attStride = 3;
+  // attributeの要素数を配列に格納
+  const attStride = new Array(2);
+  attStride[0] = 3;
+  attStride[1] = 4;
 
-  // モデルデータ
   const vertex_position = [
     0.0, 1.0, 0.0,
     1.0, 0.0, 0.0,
     -1.0, 0.0, 0.0
   ];
 
-  // VBOの生成とバインド
-  const vbo = createVbo(gl, vertex_position);
-  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  const vertex_color = [
+    1.0, 0.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 1.0
+  ];
 
-  // attribute属性の有効化と登録
-  gl.enableVertexAttribArray(attLocation);
-  gl.vertexAttribPointer(attLocation, attStride, gl.FLOAT, false, 0, 0);
+  // VBOの生成
+  const position_vbo = createVbo(gl, vertex_position);
+  const color_vbo = createVbo(gl, vertex_color);
+
+  // VBOをバインドし登録(位置情報)
+  gl.bindBuffer(gl.ARRAY_BUFFER, position_vbo);
+  gl.enableVertexAttribArray(attLocation[0]);
+  gl.vertexAttribPointer(attLocation[0], attStride[0], gl.FLOAT, false, 0, 0);
+
+  // VBOをバインドし登録(色情報)
+  gl.bindBuffer(gl.ARRAY_BUFFER, color_vbo);
+  gl.enableVertexAttribArray(attLocation[1]);
+  gl.vertexAttribPointer(attLocation[1], attStride[1], gl.FLOAT, false, 0, 0);
 
   const identity = mat4.getIdentity();
 
   // 各種行列の生成と初期化
-  const mMatrix = identity;
+  let mMatrix = identity;
 
-  // ビュー座標変換行列
-  const vMatrix = mat4.lookAt([0.0, 1.0, 3.0], [0, 0, 0], [0, 1, 0]);
-
-  // プロジェクション座標変換行列
+  const vMatrix = mat4.lookAt([0.0, 0.0, 3.0], [0, 0, 0], [0, 1, 0]);
   const pMatrix = mat4.getPerspectiveMatrix(90, c.width / c.height, 0.1, 100);
 
+  mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
+
   // 各行列を掛け合わせ座標変換行列を完成させる
-  let mvpMatrix = mat4.multiply(pMatrix, vMatrix);
-  mvpMatrix = mat4.multiply(mvpMatrix, mMatrix);
+  let mvpMatrix = [pMatrix, vMatrix, mMatrix].reduce((a, b) => mat4.multiply(a, b));
 
   // uniformLocationの取得
   const uniLocation = gl.getUniformLocation(prg, 'mvpMatrix');
 
-  // uniformLocationへ座標変換行列を登録
+  // uniformLocationへ座標変換行列を登録し描画する(一つ目のモデル)
   gl.uniformMatrix4fv(uniLocation, false, Float32Array.from(mvpMatrix.value));
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-  // モデルの描画
+  mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(-3.0, 0.0, 0.0));
+  mvpMatrix = [pMatrix, vMatrix, mMatrix].reduce((a, b) => mat4.multiply(a, b));
+
+  // uniformLocationへ座標変換行列を登録し描画する(二つ目のモデル)
+  gl.uniformMatrix4fv(uniLocation, false, Float32Array.from(mvpMatrix.value));
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 
   // コンテキストの再描画
