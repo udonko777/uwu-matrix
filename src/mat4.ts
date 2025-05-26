@@ -195,25 +195,13 @@ export const sameSize = (a: mat4, b: mat4): boolean => {
 };
 
 /**
- * 逆行列を返す。TODO
+ * 逆行列を返す。 FIX ME
  * @param matrix
+ */
 export const inverse = (matrix: mat4): mat4 => {
-  const det = determinant(matrix);
-  if (det === 0) {
-    throw new Error("Matrix is not invertible");
-  }
-
-  const result = new Float64Array(16);
-  const m = matrix.value;
-
-  //????
-
-  for (let i = 0; i < 16; i++) {
-    result[i] /= det;
-  }
-
-  return fMat.init(result, 4, 4);
-}; */
+  // FIX ME 一応動作するが、明らかに最適化可能
+  return fMat.inverse(matrix);
+};
 
 /**
  * 行列式を求める TODO
