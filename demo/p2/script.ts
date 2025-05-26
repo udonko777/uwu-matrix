@@ -25,13 +25,18 @@ const main = () => {
 
   const vertexShaderSource = `
 attribute vec3 position;
+attribute vec3 normal;
 attribute vec4 color;
 uniform   mat4 mvpMatrix;
+uniform   mat4 invMatrix;
+uniform   vec3 lightDirection;
 varying   vec4 vColor;
 
 void main(void){
-    vColor = color;
-    gl_Position = mvpMatrix * vec4(position, 1.0);
+    vec3  invLight = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
+    float diffuse  = clamp(dot(normal, invLight), 0.1, 1.0);
+    vColor         = color * vec4(vec3(diffuse), 1.0);
+    gl_Position    = mvpMatrix * vec4(position, 1.0);
 }
 `
 
@@ -53,34 +58,32 @@ void main(void){
   // attributeLocationを配列に取得
   const attLocation = new Array(2);
   attLocation[0] = gl.getAttribLocation(prg, 'position');
-  attLocation[1] = gl.getAttribLocation(prg, 'color');
+  attLocation[1] = gl.getAttribLocation(prg, 'normal');
+  attLocation[2] = gl.getAttribLocation(prg, 'color');
 
   // attributeの要素数を配列に格納
   const attStride = new Array(2);
   attStride[0] = 3;
-  attStride[1] = 4;
+  attStride[1] = 3;
+  attStride[2] = 4;
 
-  const vertex_position = [
-    0.0, 1.0, 0.0,
-    1.0, 0.0, 0.0,
-    -1.0, 0.0, 0.0,
-    0.0, -1.0, 0.0
-  ];
+  // トーラスの頂点データを生成
+  const torusData = torus(32, 32, 1.0, 2.0);
+  const position = torusData[0];
+  const normal = torusData[1];
+  const color = torusData[2];
+  const iboSource = torusData[3];
 
-  const vertex_color = [
-    1.0, 0.0, 0.0, 1.0,
-    0.0, 1.0, 0.0, 1.0,
-    0.0, 0.0, 1.0, 1.0,
-    1.0, 1.0, 1.0, 1.0
-  ];
+  gl.enable(gl.CULL_FACE);
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LEQUAL);
 
   // VBOの生成
-  const pos_vbo = createVbo(gl, vertex_position);
-  const col_vbo = createVbo(gl, vertex_color);
+  const pos_vbo = createVbo(gl, position);
+  const nor_vbo = createVbo(gl, normal);
+  const col_vbo = createVbo(gl, color);
 
-  setAttribute(gl, [pos_vbo, col_vbo], attLocation, attStride);
-
-  const iboSource = [0, 1, 2, 1, 2, 3];
+  setAttribute(gl, [pos_vbo, nor_vbo, col_vbo], attLocation, attStride);
 
   const ibo = createIbo(gl, iboSource);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
@@ -109,20 +112,33 @@ const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElemen
   let mMatrix = identity;
   let mvpMatrix = identity;
 
-  const vMatrix = mat4.lookAt([0.0, 0.0, 5.0], [0, 0, 0], [0, 1, 0]);
+  const vMatrix = mat4.lookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
   const pMatrix = mat4.getPerspectiveMatrix(45, c.width / c.height, 0.1, 100);
+
+  const lightDirection = [-0.5, 0.5, 0.5];
 
   mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
 
   const vpMatrix = mat4.multiply(pMatrix, vMatrix);
 
   // uniformLocationの取得
-  const uniLocation = gl.getUniformLocation(prg, 'mvpMatrix');
+  const uniLocation = [];
+  uniLocation[0] = gl.getUniformLocation(prg, 'mvpMatrix');
+  uniLocation[1] = gl.getUniformLocation(prg, 'invMatrix');
+  uniLocation[2] = gl.getUniformLocation(prg, 'lightDirection');
 
   // モデル座標変換行列の生成
   mMatrix = mat4.multiply(mat4.getIdentity(), mat4.rotateYMatrix(rad));
+  mMatrix = mat4.multiply(mMatrix, mat4.rotateZMatrix(rad));
   mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
-  gl.uniformMatrix4fv(uniLocation, false, Float32Array.from(mvpMatrix.value));
+
+  const invMatrix = mat4.inverse(mMatrix);
+
+  gl.uniformMatrix4fv(uniLocation[0], false, Float32Array.from(mvpMatrix.value));
+  gl.uniformMatrix4fv(uniLocation[1], false, Float32Array.from(invMatrix.value));
+  gl.uniform3fv(uniLocation[2], lightDirection);
+
+  // 描画
 
   gl.drawElements(gl.TRIANGLES, iboSourceLength, gl.UNSIGNED_SHORT, 0);
 
@@ -230,4 +246,70 @@ function createIbo(gl: WebGLRenderingContext, data: ArrayLike<number>): WebGLBuf
 
   // 生成したIBOを返して終了
   return ibo;
+}
+
+const hsva = (h: number, s: number, v: number, a: number): [number, number, number, number] => {
+  if (s > 1 || v > 1 || a > 1) {
+    throw new Error("hsvaに渡された値が不正です。");
+  }
+  const th = h % 360;
+  const i = Math.floor(th / 60);
+  const f = th / 60 - i;
+  const m = v * (1 - s);
+  const n = v * (1 - s * f);
+  const k = v * (1 - s * (1 - f));
+
+  if (!(s > 0) && !(s < 0)) {
+    return [v, v, v, a]
+  }
+  const r = [v, n, m, m, k, v];
+  const g = [k, v, v, n, m, m];
+  const b = [m, m, k, v, v, n];
+
+  return [r[i], g[i], b[i], a];
+}
+
+/**
+ * トーラスの頂点データ、色データ、インデックスデータを生成します。
+ * @param row パイプを形成する円をいくつの頂点で表現するのか
+ * @param column パイプをどれくらい分割するのか
+ * @param irad 生成されるパイプそのものの半径
+ * @param orad 原点からパイプの中心までの距離
+ * @returns [頂点座標配列,法線情報, 頂点カラー配列, インデックス配列]
+ */
+const torus = (row: number, column: number, irad: number, orad: number): [number[], number[], number[], number[]] => {
+  const pos: number[] = [];
+  const col: number[] = [];
+  const idx: number[] = [];
+  const nor: number[] = [];
+
+  for (let i = 0; i <= row; i++) {
+    const r = Math.PI * 2 / row * i;
+    const rr = Math.cos(r);
+    const ry = Math.sin(r);
+
+    for (let ii = 0; ii <= column; ii++) {
+      const tr = Math.PI * 2 / column * ii;
+      const tx = (rr * irad + orad) * Math.cos(tr);
+      const ty = ry * irad;
+      const tz = (rr * irad + orad) * Math.sin(tr);
+      const rx = rr * Math.cos(tr);
+      const rz = rr * Math.sin(tr);
+
+      pos.push(tx, ty, tz);
+      nor.push(rx, ry, rz);
+
+      const tc = hsva(360 / column * ii, 1, 1, 1);
+      col.push(tc[0], tc[1], tc[2], tc[3]);
+    }
+  }
+
+  for (let i = 0; i < row; i++) {
+    for (let ii = 0; ii < column; ii++) {
+      const r = (column + 1) * i + ii;
+      idx.push(r, r + column + 1, r + 1);
+      idx.push(r + column + 1, r + column + 2, r + 1);
+    }
+  }
+  return [pos, nor, col, idx];
 }
