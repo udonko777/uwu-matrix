@@ -30,13 +30,18 @@ attribute vec4 color;
 uniform   mat4 mvpMatrix;
 uniform   mat4 invMatrix;
 uniform   vec3 lightDirection;
+uniform   vec3 eyeDirection;
 uniform   vec4 ambientColor;
 varying   vec4 vColor;
 
 void main(void){
     vec3  invLight = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
+    vec3  invEye   = normalize(invMatrix * vec4(eyeDirection, 0.0)).xyz;
+    vec3  halfLE   = normalize(invLight + invEye);
     float diffuse  = clamp(dot(normal, invLight), 0.0, 1.0);
-    vColor         = color * vec4(vec3(diffuse), 1.0) + ambientColor;
+    float specular = pow(clamp(dot(normal, halfLE), 0.0, 1.0), 50.0);
+    vec4  light    = color * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 1.0);
+    vColor         = light + ambientColor;
     gl_Position    = mvpMatrix * vec4(position, 1.0);
 }
 `
@@ -117,6 +122,7 @@ const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElemen
   const pMatrix = mat4.getPerspectiveMatrix(45, c.width / c.height, 0.1, 100);
 
   const lightDirection = [-0.5, 0.5, 0.5];
+  const eyeDirection = [0.0, 0.0, 20.0];
   const ambientColor = [0.1, 0.1, 0.1, 1.0]
 
   mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
@@ -128,7 +134,8 @@ const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElemen
   uniLocation[0] = gl.getUniformLocation(prg, 'mvpMatrix')!;
   uniLocation[1] = gl.getUniformLocation(prg, 'invMatrix')!;
   uniLocation[2] = gl.getUniformLocation(prg, 'lightDirection')!;
-  uniLocation[3] = gl.getUniformLocation(prg, 'ambientColor')!;
+  uniLocation[3] = gl.getUniformLocation(prg, 'eyeDirection')!;
+  uniLocation[4] = gl.getUniformLocation(prg, 'ambientColor')!;
 
   // モデル座標変換行列の生成
   mMatrix = mat4.multiply(mat4.getIdentity(), mat4.rotateYMatrix(rad));
@@ -140,7 +147,8 @@ const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElemen
   gl.uniformMatrix4fv(uniLocation[0], false, Float32Array.from(mvpMatrix.value));
   gl.uniformMatrix4fv(uniLocation[1], false, Float32Array.from(invMatrix.value));
   gl.uniform3fv(uniLocation[2], lightDirection);
-  gl.uniform4fv(uniLocation[3], ambientColor);
+  gl.uniform3fv(uniLocation[3], eyeDirection);
+  gl.uniform4fv(uniLocation[4], ambientColor);
 
   // 描画
 
