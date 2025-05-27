@@ -1,5 +1,22 @@
 import * as mat4 from "@/mat4"
 
+// three.jsを参考に設定した簡易的なMesh
+type Mesh = {
+  attributes: {
+    position: Array<number>;
+    normal: Array<number>;
+    color: Array<number>;
+    iboSource: Array<number>;
+  };
+
+  vboMap: Map<string, WebGLBuffer>;
+  ibo?: WebGLBuffer;
+
+  vertexCount: number;
+
+  drawMode: number;
+};
+
 window.addEventListener('load', () => {
   main();
 })
@@ -15,15 +32,33 @@ const getCanvas = (): HTMLCanvasElement => {
 const main = () => {
   const c = getCanvas();
 
-  c.width = 500;
-  c.height = 300;
+  requestAnimationFrame(() => {
+    const renderer = new Renderer(c);
+    frame(0, renderer);
+  })
 
-  const gl: WebGLRenderingContext | null = c.getContext('webgl');
-  if (!gl) {
-    throw new Error(`webGL not supported`);
-  }
+}
 
-  const vertexShaderSource = `
+/**
+ * Rendererと呼ぶには余りにも沢山の関心を持っているが、現状のまま動作させることを優先した
+ */
+class Renderer {
+  private readonly canvas: HTMLCanvasElement;
+
+  private readonly gl: WebGLRenderingContext;
+  private readonly program: WebGLProgram;
+
+  private readonly iboSourceLength: number;
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+
+    this.gl = this.canvas.getContext('webgl')!;//fix
+    if (!this.gl) {
+      throw new Error(`webGL not supported`);
+    }
+
+    const vertexShaderSource = `
 attribute vec3 position;
 attribute vec3 normal;
 attribute vec4 color;
@@ -32,13 +67,13 @@ varying   vec3 vNormal;
 varying   vec4 vColor;
 
 void main(void){
-    vNormal     = normal;
-    vColor      = color;
-    gl_Position = mvpMatrix * vec4(position, 1.0);
+	vNormal     = normal;
+	vColor      = color;
+	gl_Position = mvpMatrix * vec4(position, 1.0);
 }
 `
 
-  const fragmentShaderSource = `
+    const fragmentShaderSource = `
 precision mediump float;
 
 uniform mat4 invMatrix;
@@ -49,120 +84,129 @@ varying vec3 vNormal;
 varying vec4 vColor;
 
 void main(void){
-    vec3  invLight  = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
-    vec3  invEye    = normalize(invMatrix * vec4(eyeDirection, 0.0)).xyz;
-    vec3  halfLE    = normalize(invLight + invEye);
-    float diffuse   = clamp(dot(vNormal, invLight), 0.0, 1.0);
-    float specular  = pow(clamp(dot(vNormal, halfLE), 0.0, 1.0), 50.0);
-    vec4  destColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 1.0) + ambientColor;
-    gl_FragColor    = destColor;
+	vec3  invLight  = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
+	vec3  invEye    = normalize(invMatrix * vec4(eyeDirection, 0.0)).xyz;
+	vec3  halfLE    = normalize(invLight + invEye);
+	float diffuse   = clamp(dot(vNormal, invLight), 0.0, 1.0);
+	float specular  = pow(clamp(dot(vNormal, halfLE), 0.0, 1.0), 50.0);
+	vec4  destColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 1.0) + ambientColor;
+	gl_FragColor    = destColor;
 }
 `
 
-  const v_shader = createShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
-  const f_shader = createShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
+    const v_shader = createShader(this.gl, vertexShaderSource, this.gl.VERTEX_SHADER);
+    const f_shader = createShader(this.gl, fragmentShaderSource, this.gl.FRAGMENT_SHADER);
 
-  // プログラムオブジェクトの生成とリンク
-  const prg = createProgram(gl, v_shader, f_shader);
+    // プログラムオブジェクトの生成とリンク
+    this.program = createProgram(this.gl, v_shader, f_shader);
 
-  // attributeLocationを配列に取得
-  const attLocation = new Array(2);
-  attLocation[0] = gl.getAttribLocation(prg, 'position');
-  attLocation[1] = gl.getAttribLocation(prg, 'normal');
-  attLocation[2] = gl.getAttribLocation(prg, 'color');
+    // attributeLocationを配列に取得
+    const attLocation = new Array(3);
+    attLocation[0] = this.gl.getAttribLocation(this.program, 'position');
+    attLocation[1] = this.gl.getAttribLocation(this.program, 'normal');
+    attLocation[2] = this.gl.getAttribLocation(this.program, 'color');
 
-  // attributeの要素数を配列に格納
-  const attStride = new Array(2);
-  attStride[0] = 3;
-  attStride[1] = 3;
-  attStride[2] = 4;
+    // attributeの要素数を配列に格納
+    const attStride = new Array(2);
+    attStride[0] = 3;
+    attStride[1] = 3;
+    attStride[2] = 4;
 
-  // トーラスの頂点データを生成
-  const torusData = torus(32, 32, 1.0, 2.0);
-  const position = torusData[0];
-  const normal = torusData[1];
-  const color = torusData[2];
-  const iboSource = torusData[3];
+    // トーラスの頂点データを生成
+    const torusData = getTorus(32, 32, 1.0, 2.0);
 
-  gl.enable(gl.CULL_FACE);
-  gl.enable(gl.DEPTH_TEST);
-  gl.depthFunc(gl.LEQUAL);
+    const torus: Mesh = {
+      attributes: {
+        position: torusData[0],
+        normal: torusData[1],
+        color: torusData[2],
+        iboSource: torusData[3],
+      },
+      vboMap: new Map(),
+      vertexCount: torusData[0].length / 3,
+      drawMode: this.gl.TRIANGLES,
+    }
 
-  // VBOの生成
-  const pos_vbo = createVbo(gl, position);
-  const nor_vbo = createVbo(gl, normal);
-  const col_vbo = createVbo(gl, color);
+    torus.vboMap.set('position', createVbo(this.gl, torus.attributes.position));
+    torus.vboMap.set('normal', createVbo(this.gl, torus.attributes.normal!));
+    torus.vboMap.set('color', createVbo(this.gl, torus.attributes.color!));
 
-  setAttribute(gl, [pos_vbo, nor_vbo, col_vbo], attLocation, attStride);
+    setAttribute(this.gl, Array.from(torus.vboMap.values()), attLocation, attStride);
 
-  const ibo = createIbo(gl, iboSource);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    this.gl.enable(this.gl.CULL_FACE);
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.depthFunc(this.gl.LEQUAL);
 
-  requestAnimationFrame(() => {
-    frame(gl, prg, c, 0, iboSource.length);
-  })
+    const ibo = createIbo(this.gl, torus.attributes.iboSource);
+    this.iboSourceLength = torus.attributes.iboSource.length;
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, ibo);
+
+  }
+
+  rendering(frameCount: number) {
+    // init
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clearDepth(1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+    const rad = (frameCount % 360) * Math.PI / 180;
+
+    // 各種行列の生成と初期化
+    const identity = mat4.getIdentity();
+
+    let mMatrix = identity;
+    let mvpMatrix = identity;
+
+    const vMatrix = mat4.lookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
+    const pMatrix = mat4.getPerspectiveMatrix(45, this.canvas.width / this.canvas.height, 0.1, 100);
+
+    const lightDirection = [-0.5, 0.5, 0.5];
+    const eyeDirection = [0.0, 0.0, 20.0];
+    const ambientColor = [0.1, 0.1, 0.1, 1.0]
+
+    mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
+
+    const vpMatrix = mat4.multiply(pMatrix, vMatrix);
+
+    // uniformLocationの取得
+    const uniLocation: WebGLUniformLocation[] = [];
+    uniLocation[0] = this.gl.getUniformLocation(this.program, 'mvpMatrix')!;
+    uniLocation[1] = this.gl.getUniformLocation(this.program, 'invMatrix')!;
+    uniLocation[2] = this.gl.getUniformLocation(this.program, 'lightDirection')!;
+    uniLocation[3] = this.gl.getUniformLocation(this.program, 'eyeDirection')!;
+    uniLocation[4] = this.gl.getUniformLocation(this.program, 'ambientColor')!;
+
+    // モデル座標変換行列の生成
+    mMatrix = mat4.multiply(mat4.getIdentity(), mat4.rotateYMatrix(rad));
+    mMatrix = mat4.multiply(mMatrix, mat4.rotateZMatrix(rad));
+    mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
+
+    const invMatrix = mat4.inverse(mMatrix);
+
+    this.gl.uniformMatrix4fv(uniLocation[0], false, Float32Array.from(mvpMatrix.value));
+		this.gl.uniformMatrix4fv(uniLocation[1], false, Float32Array.from(invMatrix.value));
+		this.gl.uniform3fv(uniLocation[2], lightDirection);
+		this.gl.uniform3fv(uniLocation[3], eyeDirection);
+		this.gl.uniform4fv(uniLocation[4], ambientColor);
+
+    // 描画
+
+    this.gl.drawElements(this.gl.TRIANGLES, this.iboSourceLength, this.gl.UNSIGNED_SHORT, 0);
+
+    // コンテキストの再描画
+    this.gl.flush();
+  }
 }
 
 /**
  * メインループ。
- * 引数の数が明らかに多すぎるが、これらは後々レンダラー自身が状態として管理できるようにする。
  */
-const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElement, frameCount: number, iboSourceLength: number) => {
+const frame = (frameCount: number, renderer: Renderer) => {
 
-  // init
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clearDepth(1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-  const rad = (frameCount % 360) * Math.PI / 180;
-
-  const identity = mat4.getIdentity();
-
-  // 各種行列の生成と初期化
-  let mMatrix = identity;
-  let mvpMatrix = identity;
-
-  const vMatrix = mat4.lookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
-  const pMatrix = mat4.getPerspectiveMatrix(45, c.width / c.height, 0.1, 100);
-
-  const lightDirection = [-0.5, 0.5, 0.5];
-  const eyeDirection = [0.0, 0.0, 20.0];
-  const ambientColor = [0.1, 0.1, 0.1, 1.0]
-
-  mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
-
-  const vpMatrix = mat4.multiply(pMatrix, vMatrix);
-
-  // uniformLocationの取得
-  const uniLocation: WebGLUniformLocation[] = [];
-  uniLocation[0] = gl.getUniformLocation(prg, 'mvpMatrix')!;
-  uniLocation[1] = gl.getUniformLocation(prg, 'invMatrix')!;
-  uniLocation[2] = gl.getUniformLocation(prg, 'lightDirection')!;
-  uniLocation[3] = gl.getUniformLocation(prg, 'eyeDirection')!;
-  uniLocation[4] = gl.getUniformLocation(prg, 'ambientColor')!;
-
-  // モデル座標変換行列の生成
-  mMatrix = mat4.multiply(mat4.getIdentity(), mat4.rotateYMatrix(rad));
-  mMatrix = mat4.multiply(mMatrix, mat4.rotateZMatrix(rad));
-  mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
-
-  const invMatrix = mat4.inverse(mMatrix);
-
-  gl.uniformMatrix4fv(uniLocation[0], false, Float32Array.from(mvpMatrix.value));
-  gl.uniformMatrix4fv(uniLocation[1], false, Float32Array.from(invMatrix.value));
-  gl.uniform3fv(uniLocation[2], lightDirection);
-  gl.uniform3fv(uniLocation[3], eyeDirection);
-  gl.uniform4fv(uniLocation[4], ambientColor);
-
-  // 描画
-
-  gl.drawElements(gl.TRIANGLES, iboSourceLength, gl.UNSIGNED_SHORT, 0);
-
-  // コンテキストの再描画
-  gl.flush();
+  renderer.rendering(frameCount)
 
   requestAnimationFrame(() => {
-    frame(gl, prg, c, ++frameCount, iboSourceLength);
+    frame(++frameCount, renderer);
   })
 }
 
@@ -212,6 +256,7 @@ const createProgram = (gl: WebGLRenderingContext, vs: WebGLShader, fs: WebGLShad
   gl.useProgram(program);
   return program;
 }
+
 /**
 VBOを生成する関数
 */
@@ -231,6 +276,7 @@ const createVbo = (gl: WebGLRenderingContext, data: ArrayLike<number>) => {
   // 生成した VBO を返して終了
   return vbo;
 }
+
 /*
 VBOをバインドし登録する関数
 */
@@ -244,6 +290,7 @@ const setAttribute = (gl: WebGLRenderingContext, vbo: WebGLBuffer[], attL: numbe
     gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
   }
 }
+
 /**
 IBOを生成する関数
 */
@@ -293,7 +340,7 @@ const hsva = (h: number, s: number, v: number, a: number): [number, number, numb
  * @param orad 原点からパイプの中心までの距離
  * @returns [頂点座標配列,法線情報, 頂点カラー配列, インデックス配列]
  */
-const torus = (row: number, column: number, irad: number, orad: number): [number[], number[], number[], number[]] => {
+const getTorus = (row: number, column: number, irad: number, orad: number): [number[], number[], number[], number[]] => {
   const pos: number[] = [];
   const col: number[] = [];
   const idx: number[] = [];
@@ -328,4 +375,50 @@ const torus = (row: number, column: number, irad: number, orad: number): [number
     }
   }
   return [pos, nor, col, idx];
+}
+
+/** 
+ * 球体を生成する関数
+ * @param row 球体を形成する膜状のポリゴンの板の縦の分割数
+ * @param column 横の分割数
+ * @param rad 球体の半径
+ * @param color
+ * @returns
+ */
+const sphere = (row: number, column: number, rad: number, color: [number, number, number, number]) => {
+  const pos: number[] = [];
+  const col: number[] = [];
+  const idx: number[] = [];
+  const nor: number[] = [];
+  for (let i = 0; i <= row; i++) {
+    const r = Math.PI / row * i;
+    const ry = Math.cos(r);
+    const rr = Math.sin(r);
+    for (let ii = 0; ii <= column; ii++) {
+      const tr = Math.PI * 2 / column * ii;
+      const tx = rr * rad * Math.cos(tr);
+      const ty = ry * rad;
+      const tz = rr * rad * Math.sin(tr);
+      const rx = rr * Math.cos(tr);
+      const rz = rr * Math.sin(tr);
+      let tc;
+      if (color) {
+        tc = color;
+      } else {
+        tc = hsva(360 / row * i, 1, 1, 1);
+      }
+      pos.push(tx, ty, tz);
+      nor.push(rx, ry, rz);
+      col.push(tc[0], tc[1], tc[2], tc[3]);
+    }
+  }
+  let r = 0;
+  for (let i = 0; i < row; i++) {
+    for (let ii = 0; ii < column; ii++) {
+      r = (column + 1) * i + ii;
+      idx.push(r, r + 1, r + column + 2);
+      idx.push(r, r + column + 2, r + column + 1);
+    }
+  }
+  return { p: pos, n: nor, c: col, i: idx };
 }
