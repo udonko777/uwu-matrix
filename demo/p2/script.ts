@@ -30,12 +30,13 @@ attribute vec4 color;
 uniform   mat4 mvpMatrix;
 uniform   mat4 invMatrix;
 uniform   vec3 lightDirection;
+uniform   vec4 ambientColor;
 varying   vec4 vColor;
 
 void main(void){
     vec3  invLight = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
-    float diffuse  = clamp(dot(normal, invLight), 0.1, 1.0);
-    vColor         = color * vec4(vec3(diffuse), 1.0);
+    float diffuse  = clamp(dot(normal, invLight), 0.0, 1.0);
+    vColor         = color * vec4(vec3(diffuse), 1.0) + ambientColor;
     gl_Position    = mvpMatrix * vec4(position, 1.0);
 }
 `
@@ -116,16 +117,18 @@ const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElemen
   const pMatrix = mat4.getPerspectiveMatrix(45, c.width / c.height, 0.1, 100);
 
   const lightDirection = [-0.5, 0.5, 0.5];
+  const ambientColor = [0.1, 0.1, 0.1, 1.0]
 
   mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
 
   const vpMatrix = mat4.multiply(pMatrix, vMatrix);
 
   // uniformLocationの取得
-  const uniLocation = [];
-  uniLocation[0] = gl.getUniformLocation(prg, 'mvpMatrix');
-  uniLocation[1] = gl.getUniformLocation(prg, 'invMatrix');
-  uniLocation[2] = gl.getUniformLocation(prg, 'lightDirection');
+  const uniLocation: WebGLUniformLocation[] = [];
+  uniLocation[0] = gl.getUniformLocation(prg, 'mvpMatrix')!;
+  uniLocation[1] = gl.getUniformLocation(prg, 'invMatrix')!;
+  uniLocation[2] = gl.getUniformLocation(prg, 'lightDirection')!;
+  uniLocation[3] = gl.getUniformLocation(prg, 'ambientColor')!;
 
   // モデル座標変換行列の生成
   mMatrix = mat4.multiply(mat4.getIdentity(), mat4.rotateYMatrix(rad));
@@ -137,6 +140,7 @@ const frame = (gl: WebGLRenderingContext, prg: WebGLProgram, c: HTMLCanvasElemen
   gl.uniformMatrix4fv(uniLocation[0], false, Float32Array.from(mvpMatrix.value));
   gl.uniformMatrix4fv(uniLocation[1], false, Float32Array.from(invMatrix.value));
   gl.uniform3fv(uniLocation[2], lightDirection);
+  gl.uniform4fv(uniLocation[3], ambientColor);
 
   // 描画
 
