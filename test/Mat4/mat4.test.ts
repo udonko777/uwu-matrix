@@ -4,9 +4,9 @@ import {
   add,
   multiplyScalar,
   getIdentity,
-  translationMatrix,
+  getTranslation,
   rotateZMatrix,
-  getPerspectiveMatrix,
+  getPerspective,
   toRowMajorArray,
 } from "@/mat4";
 
@@ -76,7 +76,7 @@ describe("mat4: 4x4 Matrix Tests", () => {
   });
 
   it("creates a translation matrix", () => {
-    const translation = translationMatrix(1, 2, 3);
+    const translation = getTranslation(1, 2, 3);
     expect(translation.value).toEqual(
       new Float64Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 2, 3, 1]),
     );
@@ -91,7 +91,7 @@ describe("mat4: 4x4 Matrix Tests", () => {
   });
 
   it("creates a perspective projection matrix", () => {
-    const perspective = getPerspectiveMatrix(Math.PI / 4, 1, 0.1, 100);
+    const perspective = getPerspective(Math.PI / 4, 1, 0.1, 100);
     expect(perspective.value).toBeDefined();
   });
 });

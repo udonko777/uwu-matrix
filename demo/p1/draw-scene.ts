@@ -75,7 +75,7 @@ export const drawScene = (
   const zNear = 0.1;
   const zFar = 100.0;
   let projectionMatrix = Matrix.getIdentity(4);
-  const perspectiveMatrix = mat4.getPerspectiveMatrix(
+  const perspectiveMatrix = mat4.getPerspective(
     fieldOfView,
     aspect,
     zNear,
@@ -91,7 +91,7 @@ export const drawScene = (
   // そして描写位置を正方形を描写し始めたい位置に少しだけ動かす
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.translationMatrix(-0.0, 0.0, -6.0)
+    mat4.getTranslation(-0.0, 0.0, -6.0)
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,

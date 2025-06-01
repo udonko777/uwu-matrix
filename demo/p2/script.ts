@@ -172,14 +172,14 @@ void main(void){
     let mMatrix = identity;
     let mvpMatrix = identity;
 
-    const vMatrix = mat4.lookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
-    const pMatrix = mat4.getPerspectiveMatrix(45, this.canvas.width / this.canvas.height, 0.1, 100);
+    const vMatrix = mat4.getLookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
+    const pMatrix = mat4.getPerspective(45, this.canvas.width / this.canvas.height, 0.1, 100);
 
     const lightPosition = [0.0, 0.0, 0.0];
     const eyeDirection = [0.0, 0.0, 20.0];
     const ambientColor = [0.1, 0.1, 0.1, 1.0]
 
-    mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
+    mMatrix = mat4.multiply(mMatrix, mat4.getTranslation(1.5, 0.0, 0.0));
 
     const vpMatrix = mat4.multiply(pMatrix, vMatrix);
 
@@ -208,7 +208,7 @@ void main(void){
     setAttribute(this.gl, Array.from(this.meshes[1].vboMap.values()), attLocation, attStride);
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.meshes[1].ibo!);
     // モデル座標変換行列の生成
-    mMatrix = mat4.multiply(mat4.getIdentity(), mat4.translationMatrix(tx, -ty, -tz));
+    mMatrix = mat4.multiply(mat4.getIdentity(), mat4.getTranslation(tx, -ty, -tz));
     mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
 
     const invMatrix = mat4.inverse(mMatrix);
@@ -228,7 +228,7 @@ void main(void){
     setAttribute(this.gl, Array.from(this.meshes[0].vboMap.values()), attLocation, attStride);
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.meshes[0].ibo!);
     // モデル座標変換行列の生成
-    mMatrix = mat4.multiply(mat4.getIdentity(), mat4.translationMatrix(-tx, ty, tz));
+    mMatrix = mat4.multiply(mat4.getIdentity(), mat4.getTranslation(-tx, ty, tz));
     mMatrix = mat4.multiply(mMatrix, mat4.rotateYMatrix(-rad));
     mMatrix = mat4.multiply(mMatrix, mat4.rotateZMatrix(-rad));
     mvpMatrix = mat4.multiply(vpMatrix, mMatrix);

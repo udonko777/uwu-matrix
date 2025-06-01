@@ -216,7 +216,7 @@ export const toString = (matrix: mat4): string => {
 };
 
 // 平行移動行列 (4x4)
-export const translationMatrix = (x: number, y: number, z: number): mat4 => {
+export const getTranslation = (x: number, y: number, z: number): mat4 => {
   return fMat.init(
     [
       1, 0, 0, 0,
@@ -281,7 +281,7 @@ export const rotateZMatrix = (rad: number): mat4 => {
  * @param up 
  * @returns 
  */
-export const lookAt = (
+export const getLookAt = (
   eye: [number, number, number],
   target: [number, number, number],
   up: [number, number, number],
@@ -344,7 +344,7 @@ export const lookAt = (
  * @param near 最近接距離（0 より大きい）
  * @param far 最遠距離（near より大きい）
  */
-export const getPerspectiveMatrix = (
+export const getPerspective = (
   fovY: number,
   aspect: number,
   near: number,
