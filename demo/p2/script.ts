@@ -386,11 +386,11 @@ const hsva = (h: number, s: number, v: number, a: number): [number, number, numb
  * トーラスの頂点データ、色データ、インデックスデータを生成します。
  * @param row パイプを形成する円をいくつの頂点で表現するのか
  * @param column パイプをどれくらい分割するのか
- * @param irad 生成されるパイプそのものの半径
- * @param orad 原点からパイプの中心までの距離
+ * @param innerRadius 生成されるパイプそのものの半径
+ * @param outerRadius 原点からパイプの中心までの距離
  * @returns [頂点座標配列,法線情報, 頂点カラー配列, インデックス配列]
  */
-const getTorus = (row: number, column: number, irad: number, orad: number, color?: [number, number, number, number]): [number[], number[], number[], number[]] => {
+const getTorus = (row: number, column: number, innerRadius: number, outerRadius: number, color?: [number, number, number, number]): [number[], number[], number[], number[]] => {
   const pos: number[] = [];
   const col: number[] = [];
   const idx: number[] = [];
@@ -403,9 +403,9 @@ const getTorus = (row: number, column: number, irad: number, orad: number, color
 
     for (let ii = 0; ii <= column; ii++) {
       const tr = Math.PI * 2 / column * ii;
-      const tx = (rr * irad + orad) * Math.cos(tr);
-      const ty = ry * irad;
-      const tz = (rr * irad + orad) * Math.sin(tr);
+      const tx = (rr * innerRadius + outerRadius) * Math.cos(tr);
+      const ty = ry * innerRadius;
+      const tz = (rr * innerRadius + outerRadius) * Math.sin(tr);
       const rx = rr * Math.cos(tr);
       const rz = rr * Math.sin(tr);
 
