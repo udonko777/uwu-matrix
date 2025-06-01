@@ -48,7 +48,7 @@ class Renderer {
   private readonly gl: WebGLRenderingContext;
   private readonly program: WebGLProgram;
 
-  private readonly iboSourceLength: number;
+  private readonly meshes: Array<Mesh> = [];
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -63,13 +63,16 @@ attribute vec3 position;
 attribute vec3 normal;
 attribute vec4 color;
 uniform   mat4 mvpMatrix;
+uniform   mat4 mMatrix;
+varying   vec3 vPosition;
 varying   vec3 vNormal;
 varying   vec4 vColor;
 
 void main(void){
-	vNormal     = normal;
-	vColor      = color;
-	gl_Position = mvpMatrix * vec4(position, 1.0);
+    vPosition   = (mMatrix * vec4(position, 1.0)).xyz;
+    vNormal     = normal;
+    vColor      = color;
+    gl_Position = mvpMatrix * vec4(position, 1.0);
 }
 `
 
@@ -77,20 +80,22 @@ void main(void){
 precision mediump float;
 
 uniform mat4 invMatrix;
-uniform vec3 lightDirection;
+uniform vec3 lightPosition;
 uniform vec3 eyeDirection;
 uniform vec4 ambientColor;
+varying vec3 vPosition;
 varying vec3 vNormal;
 varying vec4 vColor;
 
 void main(void){
-	vec3  invLight  = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;
-	vec3  invEye    = normalize(invMatrix * vec4(eyeDirection, 0.0)).xyz;
-	vec3  halfLE    = normalize(invLight + invEye);
-	float diffuse   = clamp(dot(vNormal, invLight), 0.0, 1.0);
-	float specular  = pow(clamp(dot(vNormal, halfLE), 0.0, 1.0), 50.0);
-	vec4  destColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 1.0) + ambientColor;
-	gl_FragColor    = destColor;
+    vec3  lightVec  = lightPosition - vPosition;
+    vec3  invLight  = normalize(invMatrix * vec4(lightVec, 0.0)).xyz;
+    vec3  invEye    = normalize(invMatrix * vec4(eyeDirection, 0.0)).xyz;
+    vec3  halfLE    = normalize(invLight + invEye);
+    float diffuse   = clamp(dot(vNormal, invLight), 0.0, 1.0) + 0.2;
+    float specular  = pow(clamp(dot(vNormal, halfLE), 0.0, 1.0), 50.0);
+    vec4  destColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 1.0) + ambientColor;
+    gl_FragColor    = destColor;
 }
 `
 
@@ -99,6 +104,93 @@ void main(void){
 
     // プログラムオブジェクトの生成とリンク
     this.program = createProgram(this.gl, v_shader, f_shader);
+
+    // トーラスの頂点データを生成
+    const torusData = getTorus(64, 64, 0.5, 1.5, [0.75, 0.25, 0.25, 1.0]);
+
+    const torus: Mesh = {
+      attributes: {
+        position: torusData[0],
+        normal: torusData[1],
+        color: torusData[2],
+        iboSource: torusData[3],
+      },
+      ibo: createIbo(this.gl, torusData[3]),
+      vboMap: new Map(),
+      vertexCount: torusData[0].length / 3,
+      drawMode: this.gl.TRIANGLES,
+    }
+
+    const sphereData = getSphere(64, 64, 2.0, [0.25, 0.25, 0.75, 1.0]);
+
+    const sphere: Mesh = {
+      attributes: {
+        position: sphereData.p,
+        normal: sphereData.n,
+        color: sphereData.c,
+        iboSource: sphereData.i,
+      },
+      ibo: createIbo(this.gl, sphereData.i),
+      vboMap: new Map(),
+      vertexCount: sphereData.p.length / 3,
+      drawMode: this.gl.TRIANGLES,
+    }
+
+    torus.vboMap.set('position', createVbo(this.gl, torus.attributes.position));
+    torus.vboMap.set('normal', createVbo(this.gl, torus.attributes.normal!));
+    torus.vboMap.set('color', createVbo(this.gl, torus.attributes.color!));
+
+    sphere.vboMap.set('position', createVbo(this.gl, sphere.attributes.position));
+    sphere.vboMap.set('normal', createVbo(this.gl, sphere.attributes.normal!));
+    sphere.vboMap.set('color', createVbo(this.gl, sphere.attributes.color!));
+
+    this.gl.enable(this.gl.CULL_FACE);
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.depthFunc(this.gl.LEQUAL);
+
+    this.meshes.push(torus);
+    this.meshes.push(sphere);
+
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, torus.ibo!);
+
+  }
+
+  rendering(frameCount: number) {
+    // init
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clearDepth(1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+    const rad = (frameCount % 360) * Math.PI / 180;
+    const tx = Math.cos(rad) * 3.5;
+    const ty = Math.sin(rad) * 3.5;
+    const tz = Math.sin(rad) * 3.5;
+
+    // 各種行列の生成と初期化
+    const identity = mat4.getIdentity();
+
+    let mMatrix = identity;
+    let mvpMatrix = identity;
+
+    const vMatrix = mat4.lookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
+    const pMatrix = mat4.getPerspectiveMatrix(45, this.canvas.width / this.canvas.height, 0.1, 100);
+
+    const lightPosition = [0.0, 0.0, 0.0];
+    const eyeDirection = [0.0, 0.0, 20.0];
+    const ambientColor = [0.1, 0.1, 0.1, 1.0]
+
+    mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
+
+    const vpMatrix = mat4.multiply(pMatrix, vMatrix);
+
+    // uniformLocationの取得
+    const uniLocation: WebGLUniformLocation[] = [];
+    uniLocation[0] = this.gl.getUniformLocation(this.program, 'mvpMatrix')!;
+    uniLocation[1] = this.gl.getUniformLocation(this.program, 'mMatrix')!;
+    uniLocation[2] = this.gl.getUniformLocation(this.program, 'invMatrix')!;
+    uniLocation[3] = this.gl.getUniformLocation(this.program, 'lightPosition')!;
+    uniLocation[4] = this.gl.getUniformLocation(this.program, 'eyeDirection')!;
+    uniLocation[5] = this.gl.getUniformLocation(this.program, 'ambientColor')!;
 
     // attributeLocationを配列に取得
     const attLocation = new Array(3);
@@ -112,86 +204,44 @@ void main(void){
     attStride[1] = 3;
     attStride[2] = 4;
 
-    // トーラスの頂点データを生成
-    const torusData = getTorus(32, 32, 1.0, 2.0);
-
-    const torus: Mesh = {
-      attributes: {
-        position: torusData[0],
-        normal: torusData[1],
-        color: torusData[2],
-        iboSource: torusData[3],
-      },
-      vboMap: new Map(),
-      vertexCount: torusData[0].length / 3,
-      drawMode: this.gl.TRIANGLES,
-    }
-
-    torus.vboMap.set('position', createVbo(this.gl, torus.attributes.position));
-    torus.vboMap.set('normal', createVbo(this.gl, torus.attributes.normal!));
-    torus.vboMap.set('color', createVbo(this.gl, torus.attributes.color!));
-
-    setAttribute(this.gl, Array.from(torus.vboMap.values()), attLocation, attStride);
-
-    this.gl.enable(this.gl.CULL_FACE);
-    this.gl.enable(this.gl.DEPTH_TEST);
-    this.gl.depthFunc(this.gl.LEQUAL);
-
-    const ibo = createIbo(this.gl, torus.attributes.iboSource);
-    this.iboSourceLength = torus.attributes.iboSource.length;
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, ibo);
-
-  }
-
-  rendering(frameCount: number) {
-    // init
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    this.gl.clearDepth(1.0);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
-    const rad = (frameCount % 360) * Math.PI / 180;
-
-    // 各種行列の生成と初期化
-    const identity = mat4.getIdentity();
-
-    let mMatrix = identity;
-    let mvpMatrix = identity;
-
-    const vMatrix = mat4.lookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
-    const pMatrix = mat4.getPerspectiveMatrix(45, this.canvas.width / this.canvas.height, 0.1, 100);
-
-    const lightDirection = [-0.5, 0.5, 0.5];
-    const eyeDirection = [0.0, 0.0, 20.0];
-    const ambientColor = [0.1, 0.1, 0.1, 1.0]
-
-    mMatrix = mat4.multiply(mMatrix, mat4.translationMatrix(1.5, 0.0, 0.0));
-
-    const vpMatrix = mat4.multiply(pMatrix, vMatrix);
-
-    // uniformLocationの取得
-    const uniLocation: WebGLUniformLocation[] = [];
-    uniLocation[0] = this.gl.getUniformLocation(this.program, 'mvpMatrix')!;
-    uniLocation[1] = this.gl.getUniformLocation(this.program, 'invMatrix')!;
-    uniLocation[2] = this.gl.getUniformLocation(this.program, 'lightDirection')!;
-    uniLocation[3] = this.gl.getUniformLocation(this.program, 'eyeDirection')!;
-    uniLocation[4] = this.gl.getUniformLocation(this.program, 'ambientColor')!;
-
+    // 球体について
+    setAttribute(this.gl, Array.from(this.meshes[1].vboMap.values()), attLocation, attStride);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.meshes[1].ibo!);
     // モデル座標変換行列の生成
-    mMatrix = mat4.multiply(mat4.getIdentity(), mat4.rotateYMatrix(rad));
-    mMatrix = mat4.multiply(mMatrix, mat4.rotateZMatrix(rad));
+    mMatrix = mat4.multiply(mat4.getIdentity(), mat4.translationMatrix(tx, -ty, -tz));
     mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
 
     const invMatrix = mat4.inverse(mMatrix);
 
     this.gl.uniformMatrix4fv(uniLocation[0], false, Float32Array.from(mvpMatrix.value));
-		this.gl.uniformMatrix4fv(uniLocation[1], false, Float32Array.from(invMatrix.value));
-		this.gl.uniform3fv(uniLocation[2], lightDirection);
-		this.gl.uniform3fv(uniLocation[3], eyeDirection);
-		this.gl.uniform4fv(uniLocation[4], ambientColor);
+    this.gl.uniformMatrix4fv(uniLocation[1], false, Float32Array.from(mMatrix.value));
+    this.gl.uniformMatrix4fv(uniLocation[2], false, Float32Array.from(invMatrix.value));
+    this.gl.uniform3fv(uniLocation[3], lightPosition);
+    this.gl.uniform3fv(uniLocation[4], eyeDirection);
+    this.gl.uniform4fv(uniLocation[5], ambientColor);
 
     // 描画
+    const iboSourceLength = this.meshes[1].attributes.iboSource.length;
+    this.gl.drawElements(this.gl.TRIANGLES, iboSourceLength, this.gl.UNSIGNED_SHORT, 0);
 
-    this.gl.drawElements(this.gl.TRIANGLES, this.iboSourceLength, this.gl.UNSIGNED_SHORT, 0);
+    // トーラスについて
+    setAttribute(this.gl, Array.from(this.meshes[0].vboMap.values()), attLocation, attStride);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.meshes[0].ibo!);
+    // モデル座標変換行列の生成
+    mMatrix = mat4.multiply(mat4.getIdentity(), mat4.translationMatrix(-tx, ty, tz));
+    mMatrix = mat4.multiply(mMatrix, mat4.rotateYMatrix(-rad));
+    mMatrix = mat4.multiply(mMatrix, mat4.rotateZMatrix(-rad));
+    mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
+
+    const t_invMatrix = mat4.inverse(mMatrix);
+
+    this.gl.uniformMatrix4fv(uniLocation[0], false, Float32Array.from(mvpMatrix.value));
+    this.gl.uniformMatrix4fv(uniLocation[1], false, Float32Array.from(mMatrix.value));
+    this.gl.uniformMatrix4fv(uniLocation[2], false, Float32Array.from(t_invMatrix.value));
+
+    // 描画
+    const t_iboSourceLength = this.meshes[0].attributes.iboSource.length;
+    this.gl.drawElements(this.gl.TRIANGLES, t_iboSourceLength, this.gl.UNSIGNED_SHORT, 0);
 
     // コンテキストの再描画
     this.gl.flush();
@@ -340,7 +390,7 @@ const hsva = (h: number, s: number, v: number, a: number): [number, number, numb
  * @param orad 原点からパイプの中心までの距離
  * @returns [頂点座標配列,法線情報, 頂点カラー配列, インデックス配列]
  */
-const getTorus = (row: number, column: number, irad: number, orad: number): [number[], number[], number[], number[]] => {
+const getTorus = (row: number, column: number, irad: number, orad: number, color?: [number, number, number, number]): [number[], number[], number[], number[]] => {
   const pos: number[] = [];
   const col: number[] = [];
   const idx: number[] = [];
@@ -362,7 +412,12 @@ const getTorus = (row: number, column: number, irad: number, orad: number): [num
       pos.push(tx, ty, tz);
       nor.push(rx, ry, rz);
 
-      const tc = hsva(360 / column * ii, 1, 1, 1);
+      let tc;
+      if (color) {
+        tc = color;
+      } else {
+        tc = hsva(360 / row * i, 1, 1, 1);
+      }
       col.push(tc[0], tc[1], tc[2], tc[3]);
     }
   }
@@ -385,7 +440,7 @@ const getTorus = (row: number, column: number, irad: number, orad: number): [num
  * @param color
  * @returns
  */
-const sphere = (row: number, column: number, rad: number, color: [number, number, number, number]) => {
+const getSphere = (row: number, column: number, rad: number, color: [number, number, number, number]) => {
   const pos: number[] = [];
   const col: number[] = [];
   const idx: number[] = [];
