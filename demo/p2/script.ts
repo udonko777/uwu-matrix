@@ -229,8 +229,8 @@ void main(void){
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.meshes[0].ibo!);
     // モデル座標変換行列の生成
     mMatrix = mat4.multiply(mat4.getIdentity(), mat4.getTranslation(-tx, ty, tz));
-    mMatrix = mat4.multiply(mMatrix, mat4.rotateYMatrix(-rad));
-    mMatrix = mat4.multiply(mMatrix, mat4.rotateZMatrix(-rad));
+    mMatrix = mat4.multiply(mMatrix, mat4.getRotateY(-rad));
+    mMatrix = mat4.multiply(mMatrix, mat4.getRotateZ(-rad));
     mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
 
     const t_invMatrix = mat4.inverse(mMatrix);

@@ -230,7 +230,7 @@ export const getTranslation = (x: number, y: number, z: number): mat4 => {
 };
 
 // X軸回転行列 (4x4)
-export const rotateXMatrix = (rad: number): mat4 => {
+export const getRotateX = (rad: number): mat4 => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   return fMat.init(
@@ -246,7 +246,7 @@ export const rotateXMatrix = (rad: number): mat4 => {
 }
 
 // Y軸回転行列 (4x4)
-export const rotateYMatrix = (rad: number): mat4 => {
+export const getRotateY = (rad: number): mat4 => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   return fMat.init(
@@ -262,7 +262,7 @@ export const rotateYMatrix = (rad: number): mat4 => {
 }
 
 // Z軸回転行列 (4x4)
-export const rotateZMatrix = (rad: number): mat4 => {
+export const getRotateZ = (rad: number): mat4 => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   return fromRowMajor([
@@ -272,6 +272,41 @@ export const rotateZMatrix = (rad: number): mat4 => {
     [0, 0, 0, 1],
   ]);
 };
+
+export const getRotate = (rad: number, axis: [number, number, number]): mat4 => {
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const x = axis[0];
+  const y = axis[1];
+  const z = axis[2];
+  const xx = x * x;
+  const yy = y * y;
+  const zz = z * z;
+  const xy = x * y;
+  const yz = y * z;
+  const zx = z * x;
+  const oneMinusCos = 1 - cos;
+
+  return fMat.init(
+    [
+      xx * oneMinusCos + cos,
+      xy * oneMinusCos + z * sin,
+      zx * oneMinusCos - y * sin,
+      0,
+      xy * oneMinusCos - z * sin,
+      yy * oneMinusCos + cos,
+      yz * oneMinusCos + x * sin,
+      0,
+      zx * oneMinusCos + y * sin,
+      yz * oneMinusCos - x * sin,
+      zz * oneMinusCos + cos,
+      0,
+      0,
+    ],
+    4,
+    4,
+  );
+}
 
 /**
  * 視点変換行列を作成する。 \

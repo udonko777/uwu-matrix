@@ -95,15 +95,15 @@ export const drawScene = (
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.rotateZMatrix(cubeRotation),
+    mat4.getRotateZ(cubeRotation),
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.rotateYMatrix(cubeRotation * 0.7)
+    mat4.getRotateY(cubeRotation * 0.7)
   )
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.rotateXMatrix(cubeRotation * 0.3)
+    mat4.getRotateX(cubeRotation * 0.3)
   )
 
   // WebGL にどのように座標バッファーから座標を
