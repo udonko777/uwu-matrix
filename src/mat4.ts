@@ -1,7 +1,7 @@
 import { is2dNumberArray } from "@/common";
 import * as fMat from "./matrix";
 
-type mat4 = fMat.f64Mat<4, 4>;
+export type mat4 = fMat.f64Mat<4, 4>;
 
 /*
 // TODO
