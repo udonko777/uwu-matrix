@@ -308,6 +308,20 @@ export const getRotate = (rad: number, axis: [number, number, number]): mat4 => 
   );
 }
 
+export const getScale =
+  (x: number, y: number, z: number): mat4 => {
+    return fMat.init(
+      [
+        x, 0, 0, 0,
+        0, y, 0, 0,
+        0, 0, z, 0,
+        0, 0, 0, 1,
+      ],
+      4,
+      4,
+    );
+  };
+
 /**
  * 視点変換行列を作成する。 \
  * upがzと平行であるか、ゼロベクトルだとxがNaNになる
