@@ -127,7 +127,7 @@ describe("Matrix.inverse (randomized tests)", () => {
       fc.property(randomizedRegularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
 
-        if (Math.abs(determinant(matrix)) < 1e-5) {
+        if (Math.abs(determinant(matrix)) < 1e-6) {
           fc.pre(false);
         }
 
