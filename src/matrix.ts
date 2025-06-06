@@ -81,15 +81,15 @@ export const fromRowMajor = (rowMajor: number[][]): f64Mat<number, number> => {
 /**
  * 行列のディープコピーを返す
  * @param matrix コピーを手に入れたい行列
- * @returns deep copyされた行列
+ * @returns 行列のディープコピー
  */
 export const getClone = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
   return { ...matrix, value: Float64Array.from(matrix.value) };
 };
 
 /**
-  単位行列の生成
-*/
+ *単位行列の生成
+ */
 export const getIdentity = <T extends number>(size: T): f64Mat<T, T> => {
   if (size <= 0) {
     throw new Error("Matrix size must be greater than 0");
@@ -157,22 +157,20 @@ const toPrimitive = function (
 };
 
 /**
- * 空の`f64Mat`を返す\
- * ライブラリ内でのみ使用
- * @example
+ * f64Matを直接初期化する /
+ * valueが列優先であることに注意
  */
 export const init = <R extends number, C extends number>(
   value: ArrayLike<number> = [],
   rowCount: R,
   colCount: C,
-): f64Mat<R, C> =>
-  ({
-    type: TYPE_NAME,
-    value: new Float64Array(value),
-    rowCount,
-    colCount,
-    [Symbol.toPrimitive]: toPrimitive,
-  }) as f64Mat<R, C>;
+): f64Mat<R, C> => ({
+  type: TYPE_NAME,
+  value: new Float64Array(value),
+  rowCount,
+  colCount,
+  [Symbol.toPrimitive]: toPrimitive,
+}) as f64Mat<R, C>;
 
 export const valueAt = (
   matrix: f64Mat<number, number>,
@@ -188,30 +186,30 @@ export const valueAt = (
   return matrix.value[columnIndex * matrix.rowCount + rowIndex];
 };
 
-export const add = (
-  a: f64Mat<number, number>,
-  b: f64Mat<number, number>,
-): f64Mat<number, number> => {
+export const add = <R extends number, C extends number>(
+  a: f64Mat<R, C>,
+  b: f64Mat<R, C>,
+): f64Mat<R, C> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v + b.value[i]);
-  return { ...a, value };
+  return init(value, a.rowCount, a.colCount);
 };
 
-export const subtract = (
-  a: f64Mat<number, number>,
-  b: f64Mat<number, number>,
-): f64Mat<number, number> => {
+export const subtract = <R extends number, C extends number> (
+  a: f64Mat<R, C>,
+  b: f64Mat<R, C>,
+): f64Mat<R, C> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v - b.value[i]);
-  return { ...a, value };
+  return init(value, a.rowCount, a.colCount);
 };
 
-export const multiplyScalar = (
-  matrix: f64Mat<number, number>,
+export const multiplyScalar = <R extends number, C extends number> (
+  matrix: f64Mat<R, C>,
   scalar: number,
-): f64Mat<number, number> => {
+): f64Mat<R, C> => {
   const value = matrix.value.map(v => v * scalar);
-  return { ...matrix, value };
+  return init(value, matrix.rowCount, matrix.colCount);
 };
 
 export const multiply = <M extends number, N extends number, P extends number>(
@@ -237,6 +235,15 @@ export const multiply = <M extends number, N extends number, P extends number>(
   return init(value, a.rowCount, b.colCount);
 };
 
+/**
+ * 2つの行列の対応する値の差が、全て与えられた許容範囲内であるかを返す
+ * @param a 比較対象の1つ目の行列
+ * @param b 比較対象の2つ目の行列
+ * @param precisionExponent 許容する誤差の指数（デフォルトは `Infinity` ）
+ * @returns すべての要素が許容誤差内で一致しているか
+ * 
+ * @beta 厳密等価使用時の `precisionExponent` がどうあるべきか検討中
+ */
 export const equals = (
   a: f64Mat<number, number>,
   b: f64Mat<number, number>,
@@ -277,7 +284,6 @@ const assertSameSize = (
  * @param matrix f64Mat型の行列
  * @param row1 スワップする1つ目の行の 0 ベースインデックス
  * @param row2 スワップする2つ目の行の 0 ベースインデックス
- *
  */
 const swapRows = (
   matrix: f64Mat<number, number>,
@@ -301,6 +307,7 @@ const swapRows = (
  * @param sourceRowIndex - 減算元の行の 0 ベースインデックス
  * @param scalar - 減算元の行に掛けるスカラー値
  *
+ * @internal
  * @example
  * ```ts
  * const matrix = {
@@ -331,6 +338,8 @@ export const subtractScaledRow = (
  * @param matrix f64Mat型の行列
  * @param row スカラー倍する行インデックス
  * @param scalar スカラー値
+ * 
+ * @internal
  */
 const scaleRow = (
   matrix: f64Mat<number, number>,
@@ -342,10 +351,12 @@ const scaleRow = (
   }
 };
 
-/*
-掃き出し法を用いて逆行列を求める
-計算量 O(N^3) の素朴な実装
-*/
+/**
+ * 掃き出し法を用いて逆行列を求める
+ * 計算量 O(N^3) の素朴な実装
+ * @param matrix 正則行列
+ * @returns 
+ */
 export const inverse = <T extends number>(
   matrix: f64Mat<T, T>,
 ): f64Mat<T, T> => {
@@ -450,8 +461,11 @@ export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
 };
 
 /**
-行列をコンソール上で確認しやすいテキストに整形する
-*/
+ * 行列をコンソール上で確認しやすいテキストに整形する\
+ * @remarks 今のところ未使用。
+ * @param matrix 
+ * @returns 
+ */
 export const toString = (matrix: f64Mat<unknown, unknown>): string => {
   const rows: string[] = [];
   for (let row = 0; row < matrix.rowCount; row++) {

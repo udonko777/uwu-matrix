@@ -1,4 +1,4 @@
-import * as Matrix from "../src/matrix";
+import * as Matrix from "../../src/matrix";
 import * as mat4 from "@/mat4"
 import { programInfo } from "./webgl-demo";
 import { buffers } from "./init-buffers";
@@ -75,7 +75,7 @@ export const drawScene = (
   const zNear = 0.1;
   const zFar = 100.0;
   let projectionMatrix = Matrix.getIdentity(4);
-  const perspectiveMatrix = mat4.getPerspectiveMatrix(
+  const perspectiveMatrix = mat4.getPerspective(
     fieldOfView,
     aspect,
     zNear,
@@ -91,19 +91,19 @@ export const drawScene = (
   // そして描写位置を正方形を描写し始めたい位置に少しだけ動かす
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.translationMatrix(-0.0, 0.0, -6.0)
+    mat4.getTranslation(-0.0, 0.0, -6.0)
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.rotateZMatrix(cubeRotation),
+    mat4.getRotateZ(cubeRotation),
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.rotateYMatrix(cubeRotation * 0.7)
+    mat4.getRotateY(cubeRotation * 0.7)
   )
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.rotateXMatrix(cubeRotation * 0.3)
+    mat4.getRotateX(cubeRotation * 0.3)
   )
 
   // WebGL にどのように座標バッファーから座標を

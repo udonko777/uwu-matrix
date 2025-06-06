@@ -36,6 +36,8 @@ export default defineConfig({
         rollupOptions: {
           input: {
             index: path.resolve(__dirname, "demo/index.html"),
+            demo1: path.resolve(__dirname, "demo/p1/index.html"),
+            demo2: path.resolve(__dirname, "demo/p2/index.html"),
           },
           output: {
             entryFileNames: "[name].js",
