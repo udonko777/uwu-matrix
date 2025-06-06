@@ -194,17 +194,18 @@ void main(void){
     uniLocation[4] = this.gl.getUniformLocation(this.program, 'eyeDirection')!;
     uniLocation[5] = this.gl.getUniformLocation(this.program, 'ambientColor')!;
 
+    const theMesh = this.meshes[0];
+    const attributeNames = Array.from(theMesh.geometry.attributes.keys());
+
     // attributeLocationを配列に取得
-    const attLocation = new Array(3);
-    attLocation[0] = this.gl.getAttribLocation(this.program, 'position');
-    attLocation[1] = this.gl.getAttribLocation(this.program, 'normal');
-    attLocation[2] = this.gl.getAttribLocation(this.program, 'color');
+    const attLocation = attributeNames.map(
+      name => this.gl.getAttribLocation(this.program, name)
+    );
 
     // attributeの要素数を配列に格納
-    const attStride = new Array(3);
-    attStride[0] = 3;
-    attStride[1] = 3;
-    attStride[2] = 4;
+    const attStride = attributeNames.map(
+      name => theMesh.geometry.attributes.get(name)!.stride
+    );
 
     // 球体について
     setAttribute(this.gl, Array.from(this.meshes[1].vboMap.values()), attLocation, attStride);
