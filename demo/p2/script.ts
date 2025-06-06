@@ -4,13 +4,13 @@ import * as attribute from "./attribute"
 
 // three.jsを参考に設定した簡易的なMesh
 type Mesh = {
-  attributes: Map<string, attribute.Attribute>;
-
+  geometry: {
+    attributes: Map<string, attribute.Attribute>;
+    iboSource: attribute.Attribute;
+  }
   // `Mesh`は外部から見た時の抽象なので,本当なら`WebGLBuffer`をここで持つべきではない
   vboMap: Map<string, WebGLBuffer>;
   ibo: WebGLBuffer;
-
-  iboSource: attribute.Attribute;
 
   vertexCount: number;
 
@@ -109,12 +109,14 @@ void main(void){
     const torusData = getTorus(64, 64, 0.5, 1.5, [0.75, 0.25, 0.25, 1.0]);
 
     const torus: Mesh = {
-      attributes: new Map([
-        ["position", attribute.init(torusData[0], 3)],
-        ["normal", attribute.init(torusData[1], 3)],
-        ["color", attribute.init(torusData[2], 4)],
-      ]),
-      iboSource: attribute.init(torusData[3], torusData[3].length),
+      geometry: {
+        attributes: new Map([
+          ["position", attribute.init(torusData[0], 3)],
+          ["normal", attribute.init(torusData[1], 3)],
+          ["color", attribute.init(torusData[2], 4)],
+        ]),
+        iboSource: attribute.init(torusData[3], torusData[3].length),
+      },
       ibo: createIbo(this.gl, torusData[3]),
       vboMap: new Map(),
       vertexCount: torusData[0].length / 3,
@@ -124,12 +126,14 @@ void main(void){
     const sphereData = getSphere(64, 64, 2.0, [0.25, 0.25, 0.75, 1.0]);
 
     const sphere: Mesh = {
-      attributes: new Map([
-        ["position", attribute.init(sphereData.p, 3)],
-        ["normal", attribute.init(sphereData.n, 3)],
-        ["color", attribute.init(sphereData.c, 4)],
-      ]),
-      iboSource: attribute.init(sphereData.i, sphereData.i.length),
+      geometry: {
+        attributes: new Map([
+          ["position", attribute.init(sphereData.p, 3)],
+          ["normal", attribute.init(sphereData.n, 3)],
+          ["color", attribute.init(sphereData.c, 4)],
+        ]),
+        iboSource: attribute.init(sphereData.i, sphereData.i.length),
+      },
       ibo: createIbo(this.gl, sphereData.i),
       vboMap: new Map(),
       vertexCount: sphereData.p.length / 3,
@@ -139,8 +143,8 @@ void main(void){
     //VBOの初期化
     const meshes = [torus, sphere];
     for (const mesh of meshes) {
-      for (const key of mesh.attributes.keys()) {
-        mesh.vboMap.set(key, createVbo(this.gl, mesh.attributes.get(key)!.value));
+      for (const key of mesh.geometry.attributes.keys()) {
+        mesh.vboMap.set(key, createVbo(this.gl, mesh.geometry.attributes.get(key)!.value));
       }
     }
     this.meshes = meshes;
@@ -219,7 +223,7 @@ void main(void){
     this.gl.uniform4fv(uniLocation[5], ambientColor);
 
     // 描画
-    const iboSourceLength = this.meshes[1].iboSource.stride;
+    const iboSourceLength = this.meshes[1].geometry.iboSource.stride;
     this.gl.drawElements(this.gl.TRIANGLES, iboSourceLength, this.gl.UNSIGNED_SHORT, 0);
 
     // トーラスについて
@@ -238,7 +242,7 @@ void main(void){
     this.gl.uniformMatrix4fv(uniLocation[2], false, Float32Array.from(t_invMatrix.value));
 
     // 描画
-    const t_iboSourceLength = this.meshes[0].iboSource.stride;
+    const t_iboSourceLength = this.meshes[0].geometry.iboSource.stride;
     this.gl.drawElements(this.gl.TRIANGLES, t_iboSourceLength, this.gl.UNSIGNED_SHORT, 0);
 
     // コンテキストの再描画
