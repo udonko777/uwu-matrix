@@ -1,11 +1,16 @@
 import * as mat4 from "@/mat4"
 
+import * as attribute from "./attribute"
+
 // three.jsを参考に設定した簡易的なMesh
 type Mesh = {
-  attributes: Map<string, ArrayLike<number>>;
+  attributes: Map<string, attribute.Attribute>;
 
+  // `Mesh`は外部から見た時の抽象なので,本当なら`WebGLBuffer`をここで持つべきではない
   vboMap: Map<string, WebGLBuffer>;
-  ibo?: WebGLBuffer;
+  ibo: WebGLBuffer;
+
+  iboSource: attribute.Attribute;
 
   vertexCount: number;
 
@@ -105,11 +110,11 @@ void main(void){
 
     const torus: Mesh = {
       attributes: new Map([
-        ["position", torusData[0]],
-        ["normal", torusData[1]],
-        ["color", torusData[2]],
-        ["iboSource", torusData[3]],
+        ["position", attribute.init(torusData[0], 3)],
+        ["normal", attribute.init(torusData[1], 3)],
+        ["color", attribute.init(torusData[2], 4)],
       ]),
+      iboSource: attribute.init(torusData[3], torusData[3].length),
       ibo: createIbo(this.gl, torusData[3]),
       vboMap: new Map(),
       vertexCount: torusData[0].length / 3,
@@ -120,11 +125,11 @@ void main(void){
 
     const sphere: Mesh = {
       attributes: new Map([
-        ["position", sphereData.p],
-        ["normal", sphereData.n],
-        ["color", sphereData.c],
-        ["iboSource", sphereData.i],
+        ["position", attribute.init(sphereData.p, 3)],
+        ["normal", attribute.init(sphereData.n, 3)],
+        ["color", attribute.init(sphereData.c, 4)],
       ]),
+      iboSource: attribute.init(sphereData.i, sphereData.i.length),
       ibo: createIbo(this.gl, sphereData.i),
       vboMap: new Map(),
       vertexCount: sphereData.p.length / 3,
@@ -135,7 +140,7 @@ void main(void){
     const meshes = [torus, sphere];
     for (const mesh of meshes) {
       for (const key of mesh.attributes.keys()) {
-        mesh.vboMap.set(key, createVbo(this.gl, mesh.attributes.get(key)!));
+        mesh.vboMap.set(key, createVbo(this.gl, mesh.attributes.get(key)!.value));
       }
     }
     this.meshes = meshes;
@@ -192,7 +197,7 @@ void main(void){
     attLocation[2] = this.gl.getAttribLocation(this.program, 'color');
 
     // attributeの要素数を配列に格納
-    const attStride = new Array(2);
+    const attStride = new Array(3);
     attStride[0] = 3;
     attStride[1] = 3;
     attStride[2] = 4;
@@ -214,7 +219,7 @@ void main(void){
     this.gl.uniform4fv(uniLocation[5], ambientColor);
 
     // 描画
-    const iboSourceLength = this.meshes[1].attributes.get("iboSource")!.length;
+    const iboSourceLength = this.meshes[1].iboSource.stride;
     this.gl.drawElements(this.gl.TRIANGLES, iboSourceLength, this.gl.UNSIGNED_SHORT, 0);
 
     // トーラスについて
@@ -233,7 +238,7 @@ void main(void){
     this.gl.uniformMatrix4fv(uniLocation[2], false, Float32Array.from(t_invMatrix.value));
 
     // 描画
-    const t_iboSourceLength = this.meshes[0].attributes.get("iboSource")!.length;
+    const t_iboSourceLength = this.meshes[0].iboSource.stride;
     this.gl.drawElements(this.gl.TRIANGLES, t_iboSourceLength, this.gl.UNSIGNED_SHORT, 0);
 
     // コンテキストの再描画
