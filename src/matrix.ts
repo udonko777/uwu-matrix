@@ -38,8 +38,10 @@ export const isf64Mat = (value: unknown): value is f64Mat<number, number> => {
 };
 
 /**
- * 列優先行列から、`f64Mat`のインスタンスを得る。
- * @param columnMajor 列の配列として表現された行列の内容
+ * 列優先2次元配列から `f64Mat` のインスタンスを得る
+ * @param columnMajor 列優先2次元配列
+ * @returns 行列のインスタンス
+ * @throws ValidationError 引数が不正
  */
 export const fromColumnMajor = (
   columnMajor: ReadonlyArray<ReadonlyArray<number>>,
@@ -65,7 +67,10 @@ export const fromColumnMajor = (
 };
 
 /**
- * 行優先配列から、列優先行列である`f64Mat`のインスタンスを得る
+ * 行優先2次元配列から `f64Mat` のインスタンスを得る
+ * @param rowMajor 行優先2次元配列
+ * @returns 行列のインスタンス
+ * @throws ValidationError 引数が不正
  */
 export const fromRowMajor = (rowMajor: number[][]): f64Mat<number, number> => {
   if (!is2dNumberArray(rowMajor)) {
@@ -102,7 +107,9 @@ export const getClone = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
 };
 
 /**
- *単位行列の生成
+ * 単位行列を作成
+ * @param size 行列のサイズ
+ * @returns size * size の単位行列
  */
 export const getIdentity = <T extends number>(size: T): f64Mat<T, T> => {
   if (size <= 0) {
@@ -161,6 +168,12 @@ export const toRowMajor2dArray = (
   return result;
 };
 
+/**
+ * [Symbol.toPrimitive] の実装
+ * @param this 
+ * @param hint 
+ * @returns プリミティブ値
+ */
 const toPrimitive = function (
   this: f64Mat<number, number>,
   hint: string,
@@ -173,8 +186,16 @@ const toPrimitive = function (
 };
 
 /**
- * f64Matを直接初期化する /
- * valueが列優先であることに注意
+ * 列優先の値配列から新しい f64Mat 行列インスタンスを生成
+ *
+ * @param value 行列の値を格納した配列（列優先）
+ * @param rowCount 行数
+ * @param colCount 列数
+ * @returns 新しい f64Mat インスタンス
+ *
+ * @remarks
+ * - この関数は値やサイズの妥当性チェックを行わない。呼び出し側で整合性を保証すること
+ * - value は列優先（column-major）である必要がある
  */
 export const init = <R extends number, C extends number>(
   value: ArrayLike<number> = [],
@@ -189,8 +210,16 @@ export const init = <R extends number, C extends number>(
     [Symbol.toPrimitive]: toPrimitive,
   }) as f64Mat<R, C>;
 
+/**
+ * インデックス指定で行列から値を取得する
+ * @param matrix 対象の行列
+ * @param rowIndex 行のインデックス、0 ベース。
+ * @param columnIndex 列のインデックス、0 ベース。
+ * @returns 
+ * @throws ValidationError 指定されたインデックスが対象の行列の範囲外
+ */
 export const valueAt = (
-  matrix: f64Mat<number, number>,
+  matrix: Readonly<f64Mat<number, number>>,
   rowIndex: number,
   columnIndex: number,
 ): number => {
@@ -207,6 +236,13 @@ export const valueAt = (
   return matrix.value[columnIndex * matrix.rowCount + rowIndex];
 };
 
+/**
+ * サイズ可変行列の加算
+ * @param a 左辺値
+ * @param b 右辺値
+ * @returns 加算された新しい行列
+ * @throws ValidationError 演算対象の行列のサイズが異なる場合
+ */
 export const add = <R extends number, C extends number>(
   a: f64Mat<R, C>,
   b: f64Mat<R, C>,
@@ -216,6 +252,13 @@ export const add = <R extends number, C extends number>(
   return init(value, a.rowCount, a.colCount);
 };
 
+/**
+ * サイズ可変行列の減算
+ * @param a 左辺値
+ * @param b 右辺値
+ * @returns 減算された新しい行列
+ * @throws ValidationError 演算対象の行列のサイズが異なる場合
+ */
 export const subtract = <R extends number, C extends number>(
   a: f64Mat<R, C>,
   b: f64Mat<R, C>,
@@ -225,6 +268,12 @@ export const subtract = <R extends number, C extends number>(
   return init(value, a.rowCount, a.colCount);
 };
 
+/**
+ * スカラー倍された行列を返す
+ * @param matrix 左辺値
+ * @param scalar 行列の全ての値に書けられる単一の値
+ * @returns 
+ */
 export const multiplyScalar = <R extends number, C extends number>(
   matrix: f64Mat<R, C>,
   scalar: number,
@@ -233,6 +282,13 @@ export const multiplyScalar = <R extends number, C extends number>(
   return init(value, matrix.rowCount, matrix.colCount);
 };
 
+/**
+ * 可変サイズ行列同士の演算。`Mat4.multiply()`等が使えるならそちらを優先する
+ * @param a 左辺値
+ * @param b 右辺値
+ * @returns 
+ * @throws ValidationError 左辺値の行の数と、右辺値の列の数が合わない
+ */
 export const multiply = <M extends number, N extends number, P extends number>(
   a: f64Mat<M, N>,
   b: f64Mat<N, P>,
@@ -293,6 +349,9 @@ export const sameSize = (
   return a.rowCount === b.rowCount && a.colCount === b.colCount;
 };
 
+/**
+ * @internal
+ */
 const assertSameSize = (
   a: f64Mat<number, number>,
   b: f64Mat<number, number>,
@@ -309,6 +368,8 @@ const assertSameSize = (
  * @param matrix f64Mat型の行列
  * @param row1 スワップする1つ目の行の 0 ベースインデックス
  * @param row2 スワップする2つ目の行の 0 ベースインデックス
+ * 
+ * @internal
  */
 const swapRows = (
   matrix: f64Mat<number, number>,
@@ -332,7 +393,6 @@ const swapRows = (
  * @param sourceRowIndex - 減算元の行の 0 ベースインデックス
  * @param scalar - 減算元の行に掛けるスカラー値
  *
- * @internal
  * @example
  * ```ts
  * const matrix = {
@@ -344,6 +404,7 @@ const swapRows = (
  * // 結果: matrix.value :  [-3, 2, -5, 4, -7, 6]
  * // valueは列優先配列なので、行列表記では [[-3,-5,-7],[2,4,6]] になる。
  * ```
+ * @internal
  */
 export const subtractScaledRow = (
   matrix: f64Mat<number, number>,
@@ -455,7 +516,6 @@ export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
     let pivotValue = valueAt(m, pivot, pivot);
 
     // ピボットが (ほぼ) 0 の場合、行をスワップ
-    // 無限ループする可能性がある?
     if (Math.abs(pivotValue) < 1e-5) {
       let maxRow = pivot;
       let maxAbs = Math.abs(valueAt(m, pivot, pivot));
@@ -471,7 +531,7 @@ export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
       }
       if (maxRow !== pivot) {
         swapRows(m, pivot, maxRow);
-        det *= -1; // 行をスワップすると符号が反転
+        det *= -1;
       }
       pivotValue = valueAt(m, pivot, pivot);
     }
