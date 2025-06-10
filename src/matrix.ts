@@ -1,4 +1,5 @@
 import { is2dNumberArray } from "@/common";
+import { SingularMatrixError, ValidationError } from "./errors";
 
 const TYPE_NAME = "f64Mat";
 
@@ -44,10 +45,18 @@ export const fromColumnMajor = (
   columnMajor: ReadonlyArray<ReadonlyArray<number>>,
 ): f64Mat<number, number> => {
   if (!is2dNumberArray(columnMajor)) {
-    throw new Error("Matrix must be a 2D array");
+    throw new ValidationError(
+      "Invalid matrix format: The input must be a 2D array where all elements are numbers.",
+      { cause: { reason: "not2dNumberArray", value: columnMajor } },
+    );
   }
   if (!columnMajor.every(col => col.length === columnMajor[0].length)) {
-    throw new Error("All columns must have the same number of rows");
+    throw new ValidationError(
+      "All columns must have the same number of rows.",
+      {
+        cause: { reason: "columnsHaveDifferentRowCounts", value: columnMajor },
+      },
+    );
   }
   const rowCount = columnMajor[0].length;
   const colCount = columnMajor.length;
@@ -60,10 +69,15 @@ export const fromColumnMajor = (
  */
 export const fromRowMajor = (rowMajor: number[][]): f64Mat<number, number> => {
   if (!is2dNumberArray(rowMajor)) {
-    throw new Error("Input must be a 2D array");
+    throw new ValidationError(
+      "Invalid matrix format: The input must be a 2D array where all elements are numbers.",
+      { cause: { reason: "not2dNumberArray", value: rowMajor } },
+    );
   }
   if (!rowMajor.every(row => row.length === rowMajor[0].length)) {
-    throw new Error("All rows must have the same number of columns");
+    throw new ValidationError("All rows must have the same number of columns", {
+      cause: { reason: "columnsHaveDifferentRowCounts", value: rowMajor },
+    });
   }
   const rowCount = rowMajor.length;
   const colCount = rowMajor[0].length;
@@ -92,7 +106,9 @@ export const getClone = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
  */
 export const getIdentity = <T extends number>(size: T): f64Mat<T, T> => {
   if (size <= 0) {
-    throw new Error("Matrix size must be greater than 0");
+    throw new ValidationError("Matrix size must be greater than 0", {
+      cause: { reason: "invalidSize", value: size },
+    });
   }
 
   const result = new Float64Array(size * size).fill(0);
@@ -164,13 +180,14 @@ export const init = <R extends number, C extends number>(
   value: ArrayLike<number> = [],
   rowCount: R,
   colCount: C,
-): f64Mat<R, C> => ({
-  type: TYPE_NAME,
-  value: new Float64Array(value),
-  rowCount,
-  colCount,
-  [Symbol.toPrimitive]: toPrimitive,
-}) as f64Mat<R, C>;
+): f64Mat<R, C> =>
+  ({
+    type: TYPE_NAME,
+    value: new Float64Array(value),
+    rowCount,
+    colCount,
+    [Symbol.toPrimitive]: toPrimitive,
+  }) as f64Mat<R, C>;
 
 export const valueAt = (
   matrix: f64Mat<number, number>,
@@ -178,10 +195,14 @@ export const valueAt = (
   columnIndex: number,
 ): number => {
   if (columnIndex < 0 || columnIndex >= matrix.colCount) {
-    throw new RangeError(`columnIndex ${columnIndex} is out of bounds`);
+    throw new ValidationError(`columnIndex ${columnIndex} is out of bounds`, {
+      cause: { reason: "outOfBounds", value: columnIndex },
+    });
   }
   if (rowIndex < 0 || rowIndex >= matrix.rowCount) {
-    throw new RangeError(`rowIndex ${rowIndex} is out of bounds`);
+    throw new ValidationError(`rowIndex ${rowIndex} is out of bounds`, {
+      cause: { reason: "outOfBounds", value: rowIndex },
+    });
   }
   return matrix.value[columnIndex * matrix.rowCount + rowIndex];
 };
@@ -195,7 +216,7 @@ export const add = <R extends number, C extends number>(
   return init(value, a.rowCount, a.colCount);
 };
 
-export const subtract = <R extends number, C extends number> (
+export const subtract = <R extends number, C extends number>(
   a: f64Mat<R, C>,
   b: f64Mat<R, C>,
 ): f64Mat<R, C> => {
@@ -204,7 +225,7 @@ export const subtract = <R extends number, C extends number> (
   return init(value, a.rowCount, a.colCount);
 };
 
-export const multiplyScalar = <R extends number, C extends number> (
+export const multiplyScalar = <R extends number, C extends number>(
   matrix: f64Mat<R, C>,
   scalar: number,
 ): f64Mat<R, C> => {
@@ -217,7 +238,9 @@ export const multiply = <M extends number, N extends number, P extends number>(
   b: f64Mat<N, P>,
 ): f64Mat<M, P> => {
   if (a.colCount !== b.rowCount) {
-    throw new Error("Matrix size mismatch");
+    throw new ValidationError(`Matrix size mismatch`, {
+      cause: { reason: "sizeMismatch", value: [a, b] },
+    });
   }
 
   const value = new Float64Array(a.rowCount * b.colCount).fill(0);
@@ -241,7 +264,7 @@ export const multiply = <M extends number, N extends number, P extends number>(
  * @param b 比較対象の2つ目の行列
  * @param precisionExponent 許容する誤差の指数（デフォルトは `Infinity` ）
  * @returns すべての要素が許容誤差内で一致しているか
- * 
+ *
  * @beta 厳密等価使用時の `precisionExponent` がどうあるべきか検討中
  */
 export const equals = (
@@ -275,7 +298,9 @@ const assertSameSize = (
   b: f64Mat<number, number>,
 ): void => {
   if (!sameSize(a, b)) {
-    throw new Error("Matrix size mismatch");
+    throw new ValidationError("Matrix size mismatch", {
+      cause: { reason: "sizeMismatch", value: [a, b] },
+    });
   }
 };
 
@@ -338,7 +363,7 @@ export const subtractScaledRow = (
  * @param matrix f64Mat型の行列
  * @param row スカラー倍する行インデックス
  * @param scalar スカラー値
- * 
+ *
  * @internal
  */
 const scaleRow = (
@@ -355,14 +380,16 @@ const scaleRow = (
  * 掃き出し法を用いて逆行列を求める
  * 計算量 O(N^3) の素朴な実装
  * @param matrix 正則行列
- * @returns 
+ * @returns
  */
 export const inverse = <T extends number>(
   matrix: f64Mat<T, T>,
 ): f64Mat<T, T> => {
   const size = matrix.colCount;
   if (matrix.rowCount !== size) {
-    throw new Error("Matrix must be square");
+    throw new ValidationError("Matrix must be square", {
+      cause: { reason: "notSquare", value: matrix },
+    });
   }
 
   const m = getClone(matrix);
@@ -384,7 +411,7 @@ export const inverse = <T extends number>(
 
     // 特異行列チェック
     if (maxAbs < 1e-6) {
-      throw new Error("Matrix is singular or nearly singular");
+      throw new SingularMatrixError({ cause: { value: matrix } });
     }
 
     if (maxRow !== pivot) {
@@ -415,7 +442,9 @@ export const inverse = <T extends number>(
  */
 export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
   if (matrix.rowCount !== matrix.colCount) {
-    throw new Error("Matrix must be square to compute determinant");
+    throw new ValidationError("Matrix must be square to compute determinant", {
+      cause: { reason: "notSquare", value: matrix },
+    });
   }
 
   const size = matrix.rowCount;
@@ -463,8 +492,8 @@ export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
 /**
  * 行列をコンソール上で確認しやすいテキストに整形する\
  * @remarks 今のところ未使用。
- * @param matrix 
- * @returns 
+ * @param matrix
+ * @returns
  */
 export const toString = (matrix: f64Mat<unknown, unknown>): string => {
   const rows: string[] = [];

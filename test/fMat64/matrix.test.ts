@@ -10,6 +10,7 @@ import {
   toRowMajorArray,
   toRowMajor2dArray,
 } from "@/matrix";
+import { ValidationError } from "@/errors";
 
 describe("Matrix basics", () => {
   it("Matrix.value", () => {
@@ -198,7 +199,7 @@ describe("Matrix.fromRowMajor", () => {
   it("throws an error if input is not a 2D array", () => {
     const invalidInput = [1, 2, 3] as unknown as number[][];
     expect(() => fromRowMajor(invalidInput)).toThrow(
-      "Input must be a 2D array",
+      ValidationError
     );
   });
 });
