@@ -217,16 +217,7 @@ export const toString = (matrix: mat4): string => {
 
 // 平行移動行列 (4x4)
 export const getTranslation = (x: number, y: number, z: number): mat4 => {
-  return fMat.init(
-    [
-      1, 0, 0, 0,
-      0, 1, 0, 0,
-      0, 0, 1, 0,
-      x, y, z, 1,
-    ],
-    4,
-    4,
-  );
+  return fMat.init([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1], 4, 4);
 };
 
 // X軸回転行列 (4x4)
@@ -234,32 +225,22 @@ export const getRotateX = (rad: number): mat4 => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   return fMat.init(
-    [
-      1, 0, 0, 0,
-      0, cos, -sin, 0,
-      0, sin, cos, 0,
-      0, 0, 0, 1,
-    ],
+    [1, 0, 0, 0, 0, cos, -sin, 0, 0, sin, cos, 0, 0, 0, 0, 1],
     4,
     4,
   );
-}
+};
 
 // Y軸回転行列 (4x4)
 export const getRotateY = (rad: number): mat4 => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   return fMat.init(
-    [
-      cos, 0, sin, 0,
-      0, 1, 0, 0,
-      -sin, 0, cos, 0,
-      0, 0, 0, 1,
-    ],
+    [cos, 0, sin, 0, 0, 1, 0, 0, -sin, 0, cos, 0, 0, 0, 0, 1],
     4,
     4,
   );
-}
+};
 
 // Z軸回転行列 (4x4)
 export const getRotateZ = (rad: number): mat4 => {
@@ -273,7 +254,10 @@ export const getRotateZ = (rad: number): mat4 => {
   ]);
 };
 
-export const getRotate = (rad: number, axis: [number, number, number]): mat4 => {
+export const getRotate = (
+  rad: number,
+  axis: [number, number, number],
+): mat4 => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   const x = axis[0];
@@ -306,40 +290,26 @@ export const getRotate = (rad: number, axis: [number, number, number]): mat4 => 
     4,
     4,
   );
-}
+};
 
-export const getScale =
-  (x: number, y: number, z: number): mat4 => {
-    return fMat.init(
-      [
-        x, 0, 0, 0,
-        0, y, 0, 0,
-        0, 0, z, 0,
-        0, 0, 0, 1,
-      ],
-      4,
-      4,
-    );
-  };
+export const getScale = (x: number, y: number, z: number): mat4 => {
+  return fMat.init([x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1], 4, 4);
+};
 
 /**
  * 視点変換行列を作成する。 \
  * upがzと平行であるか、ゼロベクトルだとxがNaNになる
- * @param eye 
- * @param target 
- * @param up 
- * @returns 
+ * @param eye
+ * @param target
+ * @param up
+ * @returns
  */
 export const getLookAt = (
   eye: [number, number, number],
   target: [number, number, number],
   up: [number, number, number],
 ): mat4 => {
-  const z = [
-    eye[0] - target[0],
-    eye[1] - target[1],
-    eye[2] - target[2],
-  ];
+  const z = [eye[0] - target[0], eye[1] - target[1], eye[2] - target[2]];
   const zLen = Math.sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2]);
   z[0] /= zLen;
   z[1] /= zLen;
@@ -384,7 +354,7 @@ export const getLookAt = (
     4,
     4,
   );
-}
+};
 
 /**
  * 透視射影行列を生成する

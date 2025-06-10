@@ -1,5 +1,5 @@
 import * as Matrix from "../../src/matrix";
-import * as mat4 from "@/mat4"
+import * as mat4 from "@/mat4";
 import { programInfo } from "./webgl-demo";
 import { buffers } from "./init-buffers";
 
@@ -91,7 +91,7 @@ export const drawScene = (
   // そして描写位置を正方形を描写し始めたい位置に少しだけ動かす
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.getTranslation(-0.0, 0.0, -6.0)
+    mat4.getTranslation(-0.0, 0.0, -6.0),
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
@@ -99,12 +99,12 @@ export const drawScene = (
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.getRotateY(cubeRotation * 0.7)
-  )
+    mat4.getRotateY(cubeRotation * 0.7),
+  );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.getRotateX(cubeRotation * 0.3)
-  )
+    mat4.getRotateX(cubeRotation * 0.3),
+  );
 
   // WebGL にどのように座標バッファーから座標を
   // vertexPosition 属性に引き出すか伝える。
@@ -136,5 +136,4 @@ export const drawScene = (
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
   }
-
 };

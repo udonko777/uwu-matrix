@@ -55,4 +55,4 @@ npm run dev
 ```
 
 `localhost:<port>/` を開くと demo ページが閲覧できます  
-   ( ビルドの際、環境変数を設定する必要があるので、 windows 上でビルドする際は、 package.json を編集して、`"dev": "cross-env BUILD_DEMO=true vite --host"` に書き換えてください )
+ ( ビルドの際、環境変数を設定する必要があるので、 windows 上でビルドする際は、 package.json を編集して、`"dev": "cross-env BUILD_DEMO=true vite --host"` に書き換えてください )

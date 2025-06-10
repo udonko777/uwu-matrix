@@ -86,7 +86,7 @@ describe("mat4: 4x4 Matrix Tests", () => {
     const rotation = getRotateZ(Math.PI / 2);
     expect(rotation.value).toBeCloseMatrix(
       new Float64Array([0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
-    1e-16
+      1e-16,
     );
   });
 
