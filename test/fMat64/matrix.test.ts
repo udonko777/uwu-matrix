@@ -9,7 +9,7 @@ import {
   getIdentity,
   toRowMajorArray,
   toRowMajor2dArray,
-} from "@/matrix";
+} from "@/f64Mat";
 import { ValidationError } from "@/errors";
 
 describe("Matrix basics", () => {

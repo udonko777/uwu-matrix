@@ -14,5 +14,5 @@ export {
   inverse,
   determinant,
   toString,
-} from "./matrix";
-export type { f64Mat } from "@/matrix";
+} from "./f64Mat";
+export type { f64Mat } from "@/f64Mat";

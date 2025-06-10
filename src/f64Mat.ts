@@ -3,6 +3,11 @@ import { SingularMatrixError, ValidationError } from "./errors";
 
 const TYPE_NAME = "f64Mat";
 
+/*
+ * 基本的にWebGL目的であればf32Matで十分なはずだが、浮動小数点誤差による不具合が疑われる時の為にf64版を用意した。
+ * 異なる型同士で演算する場合に、内部で型を変換する事を避けたかったので `f32Mat` とは直接演算できなくなっている
+ */
+
 /**
  * サイズが可変である実数の行列\
  * webGLの仕様に合わせ、列優先でデータを持つ

@@ -8,7 +8,7 @@ import {
   determinant,
   toRowMajor2dArray,
   subtractScaledRow,
-} from "@/matrix";
+} from "@/f64Mat";
 
 /** @see https://fast-check.dev/docs/core-blocks/arbitraries/primitives/number/ */
 

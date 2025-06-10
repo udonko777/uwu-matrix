@@ -1,5 +1,5 @@
 import { is2dNumberArray } from "@/common";
-import * as fMat from "./matrix";
+import * as fMat from "./f64Mat";
 import { ValidationError } from "./errors";
 
 export type mat4 = fMat.f64Mat<4, 4>;

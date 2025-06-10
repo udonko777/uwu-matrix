@@ -2,7 +2,7 @@
 /// <reference types="../../types/vitest.d.ts" />
 
 import { describe, expect, it } from "vitest";
-import { fromRowMajor, getIdentity, inverse, multiply } from "@/matrix";
+import { fromRowMajor, getIdentity, inverse, multiply } from "@/f64Mat";
 
 describe("Matrix.inverse", () => {
   it("calculates the inverse of a 2x2 matrix", () => {

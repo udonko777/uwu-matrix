@@ -1,4 +1,4 @@
-import * as Matrix from "../../src/matrix";
+import * as Matrix from "../../src/f64Mat";
 import * as mat4 from "@/mat4";
 import { programInfo } from "./webgl-demo";
 import { buffers } from "./init-buffers";
