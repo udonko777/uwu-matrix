@@ -1,5 +1,6 @@
 import { is2dNumberArray } from "@/common";
 import * as fMat from "./matrix";
+import { ValidationError } from "./errors";
 
 export type mat4 = fMat.f64Mat<4, 4>;
 
@@ -20,16 +21,25 @@ export const fromColumnMajor = (
  */
 export const fromRowMajor = (rowMajor: number[][]): mat4 => {
   if (!is2dNumberArray(rowMajor)) {
-    throw new Error("Input must be a 2D array");
+    throw new ValidationError(
+      "Invalid matrix format: The input must be a 2D array where all elements are numbers.",
+      { cause: { reason: "not2dNumberArray", value: rowMajor } },
+    );
   }
   if (!rowMajor.every(row => row.length === rowMajor[0].length)) {
-    throw new Error("All rows must have the same number of columns");
+    throw new ValidationError(
+      "All rows must have the same number of columns",
+      { cause: { reason: "columnsHaveDifferentRowCounts", value: rowMajor }, }
+    );
   }
   const rowCount = rowMajor.length;
   const colCount = rowMajor[0].length;
 
   if (rowCount !== 4 || colCount !== 4) {
-    throw new Error("Input must be a 4x4 matrix");
+    throw new ValidationError(
+      "Input must be a 4x4 matrix",
+      { cause: { reason: "sizeMismatch", value: rowMajor } }
+    );
   }
   const value = new Float64Array(rowCount * colCount);
 
