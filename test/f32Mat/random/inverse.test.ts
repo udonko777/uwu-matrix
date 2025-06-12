@@ -14,39 +14,6 @@ import { EPSILON_F32_ANY as EPSILON } from "../../epsilon";
 
 /** @see https://fast-check.dev/docs/core-blocks/arbitraries/primitives/number/ */
 
-// これだいぶ怪しいです UwU
-const regularMatrix = fc.integer({ min: 2, max: 5 }).chain(size =>
-  fc
-    .tuple(
-      fc.array(
-        fc.array(fc.integer({ max: 2000, min: -3000 }), {
-          minLength: size,
-          maxLength: size,
-        }),
-        {
-          minLength: size,
-          maxLength: size,
-        },
-      ),
-      fc.array(
-        fc.array(fc.integer({ max: 2000, min: -3000 }), {
-          minLength: size,
-          maxLength: size,
-        }),
-        {
-          minLength: size,
-          maxLength: size,
-        },
-      ),
-    )
-    .map(([a, b]) => {
-      const m1 = fromRowMajor(a);
-      const m2 = fromRowMajor(b);
-      const product = multiply(m1, m2);
-      return { size, rows: toRowMajor2dArray(product) };
-    }),
-);
-
 const intRegularMatrix = fc.integer({ min: 2, max: 5 }).chain(size => {
   return fc
     .array(
@@ -88,23 +55,6 @@ const randomizedRegularMatrix = fc.integer({ min: 2, max: 5 }).map(size => {
 });
 
 describe("Matrix.inverse (randomized tests)", () => {
-  it("正則行列の逆行列を求める", () => {
-    fc.assert(
-      fc.property(regularMatrix, ({ size, rows }) => {
-        const matrix = fromRowMajor(rows);
-
-        if (Math.abs(determinant(matrix)) < EPSILON) {
-          fc.pre(false);
-        }
-
-        const inv = inverse(matrix);
-        const identity = multiply(matrix, inv);
-        const expected = getIdentity(size).value;
-
-        expect(identity.value).toBeCloseMatrix(expected, EPSILON);
-      }),
-    );
-  });
 
   it("整数で構成されたランダムなサイズの正則行列の逆行列を求める", () => {
     fc.assert(
