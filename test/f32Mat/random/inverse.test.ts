@@ -55,7 +55,6 @@ const randomizedRegularMatrix = fc.integer({ min: 2, max: 5 }).map(size => {
 });
 
 describe("Matrix.inverse (randomized tests)", () => {
-
   it("整数で構成されたランダムなサイズの正則行列の逆行列を求める", () => {
     fc.assert(
       fc.property(intRegularMatrix, ({ size, rows }) => {
