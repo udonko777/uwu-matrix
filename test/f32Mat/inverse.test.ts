@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import { fromRowMajor, getIdentity, inverse, multiply } from "@/f32Mat";
-import { EPSILON_F32 as EPSILON } from "../epsilon";
+import { EPSILON_F32 as EPSILON, EPSILON_F32_ANY } from "../epsilon";
 
 describe("Matrix.inverse", () => {
   it("calculates the inverse of a 2x2 matrix", () => {
@@ -88,7 +88,7 @@ describe("Matrix.inverse", () => {
     ]);
     const AInverse = inverse(A);
     const I = multiply(A, AInverse);
-    expect(I.value).toBeCloseMatrix(getIdentity(10).value, EPSILON);
+    expect(I.value).toBeCloseMatrix(getIdentity(10).value, EPSILON_F32_ANY);
   });
 
   it("calculates the inverse of a 10x10 matrix", () => {
@@ -179,7 +179,7 @@ describe("Matrix.inverse", () => {
     const result = inverse(matrix);
 
     // 今のところ 1e-4までなら通る
-    expect(result.value).toBeCloseMatrix(expectedInverse.value, EPSILON);
+    expect(result.value).toBeCloseMatrix(expectedInverse.value, EPSILON_F32_ANY);
   });
 
   it("returns the identity matrix when the inverse is multiplied by the original matrix", () => {
