@@ -241,17 +241,17 @@ void main(void){
     this.gl.uniformMatrix4fv(
       uniLocation[0],
       false,
-      Float32Array.from(mvpMatrix.value),
+      mvpMatrix.value,
     );
     this.gl.uniformMatrix4fv(
       uniLocation[1],
       false,
-      Float32Array.from(mMatrix.value),
+      mMatrix.value,
     );
     this.gl.uniformMatrix4fv(
       uniLocation[2],
       false,
-      Float32Array.from(invMatrix.value),
+      invMatrix.value,
     );
     this.gl.uniform3fv(uniLocation[3], lightPosition);
     this.gl.uniform3fv(uniLocation[4], eyeDirection);
@@ -288,17 +288,17 @@ void main(void){
     this.gl.uniformMatrix4fv(
       uniLocation[0],
       false,
-      Float32Array.from(mvpMatrix.value),
+      mvpMatrix.value,
     );
     this.gl.uniformMatrix4fv(
       uniLocation[1],
       false,
-      Float32Array.from(mMatrix.value),
+      mMatrix.value,
     );
     this.gl.uniformMatrix4fv(
       uniLocation[2],
       false,
-      Float32Array.from(t_invMatrix.value),
+      t_invMatrix.value,
     );
 
     // 描画

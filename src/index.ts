@@ -19,10 +19,10 @@ export namespace f64Mat {
   export const toString = f64.toString;
 }
 
-import * as f32 from "./f64Mat";
+import * as f32 from "./f32Mat";
 
 export namespace f32Mat {
-  export const isf64Mat = f32.isf64Mat;
+  export const isf32Mat = f32.isf32Mat;
   export const fromColumnMajor = f32.fromColumnMajor;
   export const fromRowMajor = f32.fromRowMajor;
   export const getClone = f32.getClone;

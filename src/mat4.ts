@@ -1,8 +1,8 @@
 import { is2dNumberArray } from "@/common";
-import * as fMat from "./f64Mat";
+import * as fMat from "./f32Mat";
 import { ValidationError } from "./errors";
 
-export type mat4 = fMat.f64Mat<4, 4>;
+export type mat4 = fMat.f32Mat<4, 4>;
 
 /*
 // TODO
@@ -52,11 +52,11 @@ export const fromRowMajor = (rowMajor: number[][]): mat4 => {
 };
 
 export const getClone = (matrix: mat4): mat4 => {
-  return { ...matrix, value: Float64Array.from(matrix.value) };
+  return { ...matrix, value: Float32Array.from(matrix.value) };
 };
 
 export const getIdentity = (): mat4 => {
-  const value = new Float64Array(16);
+  const value = new Float32Array(16);
   value[0] = 1;
   value[5] = 1;
   value[10] = 1;

@@ -1,4 +1,3 @@
-import * as Matrix from "../../src/f64Mat";
 import * as mat4 from "@/mat4";
 import { programInfo } from "./webgl-demo";
 import { buffers } from "./init-buffers";
@@ -74,7 +73,7 @@ export const drawScene = (
   // カメラから 0.1 単位から 100 単位までのオブジェクトのみを表示するようにする。
   const zNear = 0.1;
   const zFar = 100.0;
-  let projectionMatrix = Matrix.getIdentity(4);
+  let projectionMatrix = mat4.getIdentity();
   const perspectiveMatrix = mat4.getPerspective(
     fieldOfView,
     aspect,
@@ -83,7 +82,7 @@ export const drawScene = (
   );
 
   // 受け取り先を取る
-  projectionMatrix = Matrix.multiply(projectionMatrix, perspectiveMatrix);
+  projectionMatrix = mat4.multiply(projectionMatrix, perspectiveMatrix);
 
   // 描写位置をシーンの中央である "identity" ポイントにセットする
   let modelViewMatrix = mat4.getIdentity();

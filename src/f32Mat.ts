@@ -516,7 +516,7 @@ export const determinant = <T extends number>(matrix: f32Mat<T, T>): number => {
     let pivotValue = valueAt(m, pivot, pivot);
 
     // ピボットが (ほぼ) 0 の場合、行をスワップ
-    if (Math.abs(pivotValue) < 1e-5) {
+    if (Math.abs(pivotValue) < 1e-6) {
       let maxRow = pivot;
       let maxAbs = Math.abs(valueAt(m, pivot, pivot));
       for (let i = pivot + 1; i < size; i++) {
