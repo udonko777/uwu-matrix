@@ -10,6 +10,8 @@ import {
   subtractScaledRow,
 } from "@/f32Mat";
 
+import { EPSILON_F32_ANY as EPSILON } from "../../epsilon";
+
 /** @see https://fast-check.dev/docs/core-blocks/arbitraries/primitives/number/ */
 
 // これだいぶ怪しいです UwU
@@ -91,7 +93,7 @@ describe("Matrix.inverse (randomized tests)", () => {
       fc.property(regularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
 
-        if (Math.abs(determinant(matrix)) < 1e-6) {
+        if (Math.abs(determinant(matrix)) < EPSILON) {
           fc.pre(false);
         }
 
@@ -99,7 +101,7 @@ describe("Matrix.inverse (randomized tests)", () => {
         const identity = multiply(matrix, inv);
         const expected = getIdentity(size).value;
 
-        expect(identity.value).toBeCloseMatrix(expected, 1e-6);
+        expect(identity.value).toBeCloseMatrix(expected, EPSILON);
       }),
     );
   });
@@ -109,7 +111,7 @@ describe("Matrix.inverse (randomized tests)", () => {
       fc.property(intRegularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
 
-        if (Math.abs(determinant(matrix)) < 1e-6) {
+        if (Math.abs(determinant(matrix)) < EPSILON) {
           fc.pre(false);
         }
 
@@ -117,7 +119,7 @@ describe("Matrix.inverse (randomized tests)", () => {
         const identity = multiply(matrix, inv);
         const expected = getIdentity(size).value;
 
-        expect(identity.value).toBeCloseMatrix(expected, 1e-6);
+        expect(identity.value).toBeCloseMatrix(expected, EPSILON);
       }),
     );
   });
@@ -127,7 +129,7 @@ describe("Matrix.inverse (randomized tests)", () => {
       fc.property(randomizedRegularMatrix, ({ size, rows }) => {
         const matrix = fromRowMajor(rows);
 
-        if (Math.abs(determinant(matrix)) < 1e-6) {
+        if (Math.abs(determinant(matrix)) < EPSILON) {
           fc.pre(false);
         }
 
@@ -141,7 +143,7 @@ describe("Matrix.inverse (randomized tests)", () => {
         console.log("Resulting Identity:", identity.value);
         console.log("Expected Identity:", expected);
         */
-        expect(identity.value).toBeCloseMatrix(expected, 1e-6);
+        expect(identity.value).toBeCloseMatrix(expected, EPSILON);
       }),
     );
   });

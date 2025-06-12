@@ -3,8 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import { fromRowMajor, getIdentity, inverse, multiply } from "@/f32Mat";
-
-const EPSILON = 1e-5;
+import { EPSILON_F32 as EPSILON } from "../epsilon";
 
 describe("Matrix.inverse", () => {
   it("calculates the inverse of a 2x2 matrix", () => {
@@ -191,7 +190,7 @@ describe("Matrix.inverse", () => {
     const identity = getIdentity(2);
     const result = multiply(matrix, inverse(matrix));
 
-    expect(result.value).toBeCloseMatrix(identity.value,EPSILON);
+    expect(result.value).toBeCloseMatrix(identity.value, EPSILON);
   });
 
   it("throws an error for non-square matrices", () => {

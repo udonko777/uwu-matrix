@@ -498,7 +498,7 @@ export const inverse = <T extends number>(
 };
 
 /**
- * 行列式を求める素朴な実装
+ * ガウスの消去法を用いて行列式を求める。部分ピボットを採用
  * @param matrix
  */
 export const determinant = <T extends number>(matrix: f32Mat<T, T>): number => {
