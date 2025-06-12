@@ -2,7 +2,8 @@
 import * as f64 from "./f64Mat";
 
 export namespace f64Mat {
-  export const isf64Mat = f64.isf64Mat;
+  export type F64Mat<R extends number, C extends number> = f64.F64Mat<R, C>;
+  export const isf64Mat = f64.isF64Mat;
   export const fromColumnMajor = f64.fromColumnMajor;
   export const fromRowMajor = f64.fromRowMajor;
   export const getClone = f64.getClone;
@@ -22,7 +23,8 @@ export namespace f64Mat {
 import * as f32 from "./f32Mat";
 
 export namespace f32Mat {
-  export const isf32Mat = f32.isf32Mat;
+  export type F32Mat<R extends number, C extends number> = f32.F32Mat<R, C>;
+  export const isf32Mat = f32.isF32Mat;
   export const fromColumnMajor = f32.fromColumnMajor;
   export const fromRowMajor = f32.fromRowMajor;
   export const getClone = f32.getClone;

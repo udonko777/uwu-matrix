@@ -1,7 +1,7 @@
 import { is2dNumberArray } from "@/common";
 import { SingularMatrixError, ValidationError } from "./errors";
 
-const TYPE_NAME = "f64Mat";
+const TYPE_NAME = "F64Mat";
 
 /*
  * 基本的にWebGL目的であればf32Matで十分なはずだが、浮動小数点誤差による不具合が疑われる時の為にf64版を用意した。
@@ -12,7 +12,7 @@ const TYPE_NAME = "f64Mat";
  * サイズが可変である実数の行列\
  * webGLの仕様に合わせ、列優先でデータを持つ
  */
-export type f64Mat<R, C> = {
+export type F64Mat<R, C> = {
   type: typeof TYPE_NAME;
   /** column-major order */
   value: Float64Array;
@@ -24,14 +24,14 @@ export type f64Mat<R, C> = {
 };
 
 /**
- * 引数が`f64Mat<number,number>`型を満たしており、論理的に構造が破綻していないか確かめる
- * @summary 実用的には、この関数を利用せずとも`type`の値が`"f64Mat"`であれば`f64Mat<number,number>`としてよい
+ * 引数が`F64Mat<number,number>`型を満たしており、論理的に構造が破綻していないか確かめる
+ * @summary 実用的には、この関数を利用せずとも`type`の値が`"F64Mat"`であれば`F64Mat<number,number>`としてよい
  */
-export const isf64Mat = (value: unknown): value is f64Mat<number, number> => {
+export const isF64Mat = (value: unknown): value is F64Mat<number, number> => {
   if (typeof value !== "object" || value === null) {
     return false;
   }
-  const matrix = value as Partial<f64Mat<number, number>>;
+  const matrix = value as Partial<F64Mat<number, number>>;
   return (
     matrix.type === TYPE_NAME &&
     matrix.value instanceof Float64Array &&
@@ -43,14 +43,14 @@ export const isf64Mat = (value: unknown): value is f64Mat<number, number> => {
 };
 
 /**
- * 列優先2次元配列から `f64Mat` のインスタンスを得る
+ * 列優先2次元配列から `F64Mat` のインスタンスを得る
  * @param columnMajor 列優先2次元配列
  * @returns 行列のインスタンス
  * @throws ValidationError 引数が不正
  */
 export const fromColumnMajor = (
   columnMajor: ReadonlyArray<ReadonlyArray<number>>,
-): f64Mat<number, number> => {
+): F64Mat<number, number> => {
   if (!is2dNumberArray(columnMajor)) {
     throw new ValidationError(
       "Invalid matrix format: The input must be a 2D array where all elements are numbers.",
@@ -72,12 +72,12 @@ export const fromColumnMajor = (
 };
 
 /**
- * 行優先2次元配列から `f64Mat` のインスタンスを得る
+ * 行優先2次元配列から `F64Mat` のインスタンスを得る
  * @param rowMajor 行優先2次元配列
  * @returns 行列のインスタンス
  * @throws ValidationError 引数が不正
  */
-export const fromRowMajor = (rowMajor: number[][]): f64Mat<number, number> => {
+export const fromRowMajor = (rowMajor: number[][]): F64Mat<number, number> => {
   if (!is2dNumberArray(rowMajor)) {
     throw new ValidationError(
       "Invalid matrix format: The input must be a 2D array where all elements are numbers.",
@@ -107,7 +107,7 @@ export const fromRowMajor = (rowMajor: number[][]): f64Mat<number, number> => {
  * @param matrix コピーを手に入れたい行列
  * @returns 行列のディープコピー
  */
-export const getClone = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
+export const getClone = <T, V>(matrix: F64Mat<T, V>): F64Mat<T, V> => {
   return { ...matrix, value: Float64Array.from(matrix.value) };
 };
 
@@ -116,7 +116,7 @@ export const getClone = <T, V>(matrix: f64Mat<T, V>): f64Mat<T, V> => {
  * @param size 行列のサイズ
  * @returns size * size の単位行列
  */
-export const getIdentity = <T extends number>(size: T): f64Mat<T, T> => {
+export const getIdentity = <T extends number>(size: T): F64Mat<T, T> => {
   if (size <= 0) {
     throw new ValidationError("Matrix size must be greater than 0", {
       cause: { reason: "invalidSize", value: size },
@@ -132,15 +132,15 @@ export const getIdentity = <T extends number>(size: T): f64Mat<T, T> => {
   return {
     ...init(result, size, size),
     type: TYPE_NAME,
-  } as f64Mat<T, T>;
+  } as F64Mat<T, T>;
 };
 
 /**
- * f64Matのvalueをrow-majorな一次元配列として取得する。実装時点ではテスト用
- * @param matrix f64Mat型の行列
+ * F64Matのvalueをrow-majorな一次元配列として取得する。実装時点ではテスト用
+ * @param matrix F64Mat型の行列
  * @returns row-majorな一次元配列
  */
-export const toRowMajorArray = (matrix: f64Mat<number, number>): number[] => {
+export const toRowMajorArray = (matrix: F64Mat<number, number>): number[] => {
   const result: number[] = [];
   for (let row = 0; row < matrix.rowCount; row++) {
     for (let col = 0; col < matrix.colCount; col++) {
@@ -151,7 +151,7 @@ export const toRowMajorArray = (matrix: f64Mat<number, number>): number[] => {
 };
 
 /**
- * f64MatのValueを行優先の二次元配列として取得する。主にテストケースの作成に使用することを想定
+ * F64MatのValueを行優先の二次元配列として取得する。主にテストケースの作成に使用することを想定
  * @param matrix
  * @example
  * //TODO このサンプルのテスト
@@ -160,7 +160,7 @@ export const toRowMajorArray = (matrix: f64Mat<number, number>): number[] => {
  * const sameMatrix = fromRowMajor(matrix.rowCount * matrix.colCount,param);
  */
 export const toRowMajor2dArray = (
-  matrix: f64Mat<number, number>,
+  matrix: F64Mat<number, number>,
 ): number[][] => {
   const result: number[][] = [];
   for (let row = 0; row < matrix.rowCount; row++) {
@@ -180,23 +180,23 @@ export const toRowMajor2dArray = (
  * @returns プリミティブ値
  */
 const toPrimitive = function (
-  this: f64Mat<number, number>,
+  this: F64Mat<number, number>,
   hint: string,
 ): string | null {
   if (hint === "string") {
-    // 例: [object f64Mat 3x4]
+    // 例: [object F64Mat 3x4]
     return `[object ${this.type}: ${this.rowCount}x${this.colCount}]`;
   }
   return null;
 };
 
 /**
- * 列優先の値配列から新しい f64Mat 行列インスタンスを生成
+ * 列優先の値配列から新しい F64Mat 行列インスタンスを生成
  *
  * @param value 行列の値を格納した配列（列優先）
  * @param rowCount 行数
  * @param colCount 列数
- * @returns 新しい f64Mat インスタンス
+ * @returns 新しい F64Mat インスタンス
  *
  * @remarks
  * - この関数は値やサイズの妥当性チェックを行わない。呼び出し側で整合性を保証すること
@@ -206,14 +206,14 @@ export const init = <R extends number, C extends number>(
   value: ArrayLike<number> = [],
   rowCount: R,
   colCount: C,
-): f64Mat<R, C> =>
+): F64Mat<R, C> =>
   ({
     type: TYPE_NAME,
     value: new Float64Array(value),
     rowCount,
     colCount,
     [Symbol.toPrimitive]: toPrimitive,
-  }) as f64Mat<R, C>;
+  }) as F64Mat<R, C>;
 
 /**
  * インデックス指定で行列から値を取得する
@@ -224,7 +224,7 @@ export const init = <R extends number, C extends number>(
  * @throws ValidationError 指定されたインデックスが対象の行列の範囲外
  */
 export const valueAt = (
-  matrix: Readonly<f64Mat<number, number>>,
+  matrix: Readonly<F64Mat<number, number>>,
   rowIndex: number,
   columnIndex: number,
 ): number => {
@@ -249,9 +249,9 @@ export const valueAt = (
  * @throws ValidationError 演算対象の行列のサイズが異なる場合
  */
 export const add = <R extends number, C extends number>(
-  a: f64Mat<R, C>,
-  b: f64Mat<R, C>,
-): f64Mat<R, C> => {
+  a: F64Mat<R, C>,
+  b: F64Mat<R, C>,
+): F64Mat<R, C> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v + b.value[i]);
   return init(value, a.rowCount, a.colCount);
@@ -265,9 +265,9 @@ export const add = <R extends number, C extends number>(
  * @throws ValidationError 演算対象の行列のサイズが異なる場合
  */
 export const subtract = <R extends number, C extends number>(
-  a: f64Mat<R, C>,
-  b: f64Mat<R, C>,
-): f64Mat<R, C> => {
+  a: F64Mat<R, C>,
+  b: F64Mat<R, C>,
+): F64Mat<R, C> => {
   assertSameSize(a, b);
   const value = a.value.map((v, i) => v - b.value[i]);
   return init(value, a.rowCount, a.colCount);
@@ -280,9 +280,9 @@ export const subtract = <R extends number, C extends number>(
  * @returns 
  */
 export const multiplyScalar = <R extends number, C extends number>(
-  matrix: f64Mat<R, C>,
+  matrix: F64Mat<R, C>,
   scalar: number,
-): f64Mat<R, C> => {
+): F64Mat<R, C> => {
   const value = matrix.value.map(v => v * scalar);
   return init(value, matrix.rowCount, matrix.colCount);
 };
@@ -295,9 +295,9 @@ export const multiplyScalar = <R extends number, C extends number>(
  * @throws ValidationError 左辺値の行の数と、右辺値の列の数が合わない
  */
 export const multiply = <M extends number, N extends number, P extends number>(
-  a: f64Mat<M, N>,
-  b: f64Mat<N, P>,
-): f64Mat<M, P> => {
+  a: F64Mat<M, N>,
+  b: F64Mat<N, P>,
+): F64Mat<M, P> => {
   if (a.colCount !== b.rowCount) {
     throw new ValidationError(`Matrix size mismatch`, {
       cause: { reason: "sizeMismatch", value: [a, b] },
@@ -329,8 +329,8 @@ export const multiply = <M extends number, N extends number, P extends number>(
  * @beta 厳密等価使用時の `precisionExponent` がどうあるべきか検討中
  */
 export const equals = (
-  a: f64Mat<number, number>,
-  b: f64Mat<number, number>,
+  a: F64Mat<number, number>,
+  b: F64Mat<number, number>,
   precisionExponent = Infinity,
 ): boolean => {
   if (a.rowCount !== b.rowCount || a.colCount !== b.colCount) {
@@ -348,8 +348,8 @@ export const equals = (
 };
 
 export const sameSize = (
-  a: f64Mat<number, number>,
-  b: f64Mat<number, number>,
+  a: F64Mat<number, number>,
+  b: F64Mat<number, number>,
 ): boolean => {
   return a.rowCount === b.rowCount && a.colCount === b.colCount;
 };
@@ -358,8 +358,8 @@ export const sameSize = (
  * @internal
  */
 const assertSameSize = (
-  a: f64Mat<number, number>,
-  b: f64Mat<number, number>,
+  a: F64Mat<number, number>,
+  b: F64Mat<number, number>,
 ): void => {
   if (!sameSize(a, b)) {
     throw new ValidationError("Matrix size mismatch", {
@@ -370,14 +370,14 @@ const assertSameSize = (
 
 /**
  * 行列の指定した2つの行をスワップする
- * @param matrix f64Mat型の行列
+ * @param matrix F64Mat型の行列
  * @param row1 スワップする1つ目の行の 0 ベースインデックス
  * @param row2 スワップする2つ目の行の 0 ベースインデックス
  * 
  * @internal
  */
 const swapRows = (
-  matrix: f64Mat<number, number>,
+  matrix: F64Mat<number, number>,
   row1: number,
   row2: number,
 ): void => {
@@ -412,7 +412,7 @@ const swapRows = (
  * @internal
  */
 export const subtractScaledRow = (
-  matrix: f64Mat<number, number>,
+  matrix: F64Mat<number, number>,
   targetRowIndex: number,
   sourceRowIndex: number,
   scalar: number,
@@ -426,14 +426,14 @@ export const subtractScaledRow = (
 
 /**
  * 行列の指定した行をスカラー倍する
- * @param matrix f64Mat型の行列
+ * @param matrix F64Mat型の行列
  * @param row スカラー倍する行インデックス
  * @param scalar スカラー値
  *
  * @internal
  */
 const scaleRow = (
-  matrix: f64Mat<number, number>,
+  matrix: F64Mat<number, number>,
   row: number,
   scalar: number,
 ): void => {
@@ -449,8 +449,8 @@ const scaleRow = (
  * @returns
  */
 export const inverse = <T extends number>(
-  matrix: f64Mat<T, T>,
-): f64Mat<T, T> => {
+  matrix: F64Mat<T, T>,
+): F64Mat<T, T> => {
   const size = matrix.colCount;
   if (matrix.rowCount !== size) {
     throw new ValidationError("Matrix must be square", {
@@ -506,7 +506,7 @@ export const inverse = <T extends number>(
  * ガウスの消去法を用いて行列式を求める。
  * @param matrix
  */
-export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
+export const determinant = <T extends number>(matrix: F64Mat<T, T>): number => {
   if (matrix.rowCount !== matrix.colCount) {
     throw new ValidationError("Matrix must be square to compute determinant", {
       cause: { reason: "notSquare", value: matrix },
@@ -560,7 +560,7 @@ export const determinant = <T extends number>(matrix: f64Mat<T, T>): number => {
  * @param matrix
  * @returns
  */
-export const toString = (matrix: f64Mat<unknown, unknown>): string => {
+export const toString = (matrix: F64Mat<unknown, unknown>): string => {
   const rows: string[] = [];
   for (let row = 0; row < matrix.rowCount; row++) {
     const rowValues: number[] = [];
