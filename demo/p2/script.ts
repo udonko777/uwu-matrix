@@ -166,6 +166,48 @@ void main(void){
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, torus.ibo!);
   }
 
+  private drawMesh(
+    mesh: Mesh,
+    mMatrix: mat4.Mat4,
+    vpMatrix: mat4.Mat4,
+    uniLocation: WebGLUniformLocation[],
+    lightPosition: number[],
+    eyeDirection: number[],
+    ambientColor: number[]
+  ) {
+    const mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
+    const invMatrix = mat4.inverse(mMatrix);
+
+    const attributeNames = Array.from(mesh.geometry.attributes.keys());
+
+    // attributeLocationを配列に取得
+    const attLocation = attributeNames.map(name =>
+      this.gl.getAttribLocation(this.program, name),
+    );
+
+    // attributeの要素数を配列に格納
+    const attStride = attributeNames.map(
+      name => mesh.geometry.attributes.get(name)!.stride,
+    );
+
+    setAttribute(this.gl, Array.from(mesh.vboMap.values()), attLocation, attStride);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, mesh.ibo);
+
+    this.gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix.value);
+    this.gl.uniformMatrix4fv(uniLocation[1], false, mMatrix.value);
+    this.gl.uniformMatrix4fv(uniLocation[2], false, invMatrix.value);
+    this.gl.uniform3fv(uniLocation[3], lightPosition);
+    this.gl.uniform3fv(uniLocation[4], eyeDirection);
+    this.gl.uniform4fv(uniLocation[5], ambientColor);
+
+    this.gl.drawElements(
+      this.gl.TRIANGLES,
+      mesh.geometry.iboSource.stride,
+      this.gl.UNSIGNED_SHORT,
+      0
+    );
+  }
+
   rendering(frameCount: number) {
     // init
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -181,7 +223,6 @@ void main(void){
     const identity = mat4.getIdentity();
 
     let mMatrix = identity;
-    let mvpMatrix = identity;
 
     const vMatrix = mat4.getLookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
     const pMatrix = mat4.getPerspective(
@@ -208,72 +249,13 @@ void main(void){
     uniLocation[4] = this.gl.getUniformLocation(this.program, "eyeDirection")!;
     uniLocation[5] = this.gl.getUniformLocation(this.program, "ambientColor")!;
 
-    const theMesh = this.meshes[0];
-    const attributeNames = Array.from(theMesh.geometry.attributes.keys());
-
-    // attributeLocationを配列に取得
-    const attLocation = attributeNames.map(name =>
-      this.gl.getAttribLocation(this.program, name),
-    );
-
-    // attributeの要素数を配列に格納
-    const attStride = attributeNames.map(
-      name => theMesh.geometry.attributes.get(name)!.stride,
-    );
-
-    // 球体について
-    setAttribute(
-      this.gl,
-      Array.from(this.meshes[1].vboMap.values()),
-      attLocation,
-      attStride,
-    );
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.meshes[1].ibo!);
     // モデル座標変換行列の生成
     mMatrix = mat4.multiply(
       mat4.getIdentity(),
       mat4.getTranslation(tx, -ty, -tz),
     );
-    mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
 
-    const invMatrix = mat4.inverse(mMatrix);
-
-    this.gl.uniformMatrix4fv(
-      uniLocation[0],
-      false,
-      mvpMatrix.value,
-    );
-    this.gl.uniformMatrix4fv(
-      uniLocation[1],
-      false,
-      mMatrix.value,
-    );
-    this.gl.uniformMatrix4fv(
-      uniLocation[2],
-      false,
-      invMatrix.value,
-    );
-    this.gl.uniform3fv(uniLocation[3], lightPosition);
-    this.gl.uniform3fv(uniLocation[4], eyeDirection);
-    this.gl.uniform4fv(uniLocation[5], ambientColor);
-
-    // 描画
-    const iboSourceLength = this.meshes[1].geometry.iboSource.stride;
-    this.gl.drawElements(
-      this.gl.TRIANGLES,
-      iboSourceLength,
-      this.gl.UNSIGNED_SHORT,
-      0,
-    );
-
-    // トーラスについて
-    setAttribute(
-      this.gl,
-      Array.from(this.meshes[0].vboMap.values()),
-      attLocation,
-      attStride,
-    );
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.meshes[0].ibo!);
+    this.drawMesh(this.meshes[1], mMatrix, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
     // モデル座標変換行列の生成
     mMatrix = mat4.multiply(
       mat4.getIdentity(),
@@ -281,34 +263,13 @@ void main(void){
     );
     mMatrix = mat4.multiply(mMatrix, mat4.getRotateY(-rad));
     mMatrix = mat4.multiply(mMatrix, mat4.getRotateZ(-rad));
-    mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
 
-    const t_invMatrix = mat4.inverse(mMatrix);
+    this.drawMesh(this.meshes[0], mMatrix, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
 
-    this.gl.uniformMatrix4fv(
-      uniLocation[0],
-      false,
-      mvpMatrix.value,
-    );
-    this.gl.uniformMatrix4fv(
-      uniLocation[1],
-      false,
-      mMatrix.value,
-    );
-    this.gl.uniformMatrix4fv(
-      uniLocation[2],
-      false,
-      t_invMatrix.value,
-    );
-
-    // 描画
-    const t_iboSourceLength = this.meshes[0].geometry.iboSource.stride;
-    this.gl.drawElements(
-      this.gl.TRIANGLES,
-      t_iboSourceLength,
-      this.gl.UNSIGNED_SHORT,
-      0,
-    );
+    const error = this.gl.getError();
+    if (error !== this.gl.NO_ERROR) {
+      console.error("WebGL error:", error);
+    }
 
     // コンテキストの再描画
     this.gl.flush();
