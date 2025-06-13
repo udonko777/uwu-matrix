@@ -16,6 +16,11 @@ type Mesh = {
 
   drawMode: number;
 };
+// object3dに近い
+type RenderableObject = {
+  mesh: Mesh;
+  modelMatrix: mat4.Mat4;
+}
 
 window.addEventListener("load", () => {
   main();
@@ -166,15 +171,18 @@ void main(void){
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, torus.ibo!);
   }
 
-  private drawMesh(
-    mesh: Mesh,
-    mMatrix: mat4.Mat4,
+  private drawObject(
+    RenderableObject: RenderableObject,
     vpMatrix: mat4.Mat4,
     uniLocation: WebGLUniformLocation[],
     lightPosition: number[],
     eyeDirection: number[],
     ambientColor: number[]
   ) {
+
+    const mesh = RenderableObject.mesh;
+    const mMatrix = RenderableObject.modelMatrix;
+
     const mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
     const invMatrix = mat4.inverse(mMatrix);
 
@@ -254,8 +262,12 @@ void main(void){
       mat4.getIdentity(),
       mat4.getTranslation(tx, -ty, -tz),
     );
+    const orb: RenderableObject = {
+      mesh: this.meshes[1],
+      modelMatrix: mMatrix
+    }
 
-    this.drawMesh(this.meshes[1], mMatrix, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
+    this.drawObject(orb, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
     // モデル座標変換行列の生成
     mMatrix = mat4.multiply(
       mat4.getIdentity(),
@@ -264,7 +276,12 @@ void main(void){
     mMatrix = mat4.multiply(mMatrix, mat4.getRotateY(-rad));
     mMatrix = mat4.multiply(mMatrix, mat4.getRotateZ(-rad));
 
-    this.drawMesh(this.meshes[0], mMatrix, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
+    const torus: RenderableObject = {
+      mesh: this.meshes[0],
+      modelMatrix: mMatrix
+    }
+
+    this.drawObject(torus, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
 
     const error = this.gl.getError();
     if (error !== this.gl.NO_ERROR) {
