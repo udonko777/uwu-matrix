@@ -1,10 +1,13 @@
 import * as attribute from "./attribute";
+import * as material from "./material";
 // three.jsを参考に設定した簡易的なMesh
 export type Mesh = {
   geometry: {
     attributes: Map<string, attribute.Attribute>;
     iboSource: attribute.Attribute;
   };
+
+  material: material.Material
   // `Mesh`は外部から見た時の抽象なので,本当なら`WebGLBuffer`をここで持つべきではない
   vboMap?: Map<string, WebGLBuffer>;
   ibo?: WebGLBuffer;
@@ -23,6 +26,9 @@ const initMesh = (data: { p: number[], n: number[], c: number[], i: number[] }):
         ["color", attribute.init(data.c, 4)],
       ]),
       iboSource: attribute.init(data.i, data.i.length),
+    },
+    material: {
+      map: null,
     },
     vboMap: new Map(),
   }
@@ -160,3 +166,7 @@ export const getSphere = (
   }
   return initMesh({ p: pos, n: nor, c: col, i: idx });
 };
+
+const getTetragon = (): Mesh => {
+
+}
