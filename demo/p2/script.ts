@@ -1,6 +1,8 @@
 import * as mat4 from "@/mat4";
 import * as mesh from "./mesh";
 
+import { loadImageBitmap } from "./common/loadImageBitmap"
+
 // object3dに近い
 type RenderableObject = {
   mesh: GpuMesh;
@@ -28,9 +30,12 @@ const getCanvas = (): HTMLCanvasElement => {
 
 const main = () => {
   const c = getCanvas();
+  loadImageBitmap("./resource/demo.png").then(() => {
+    console.log("loading succeed!");
+  });
+  const renderer = new Renderer(c);
 
   requestAnimationFrame(() => {
-    const renderer = new Renderer(c);
     frame(0, renderer);
   });
 };
