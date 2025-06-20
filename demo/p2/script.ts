@@ -117,25 +117,11 @@ void main(void){
     // トーラスの頂点データを生成
     const torusData = mesh.getTorus(64, 64, 0.5, 1.5, [0.75, 0.25, 0.25, 1.0]);
 
-    const torus: GpuMesh = {
-      ...torusData,
-      ibo: createIbo(this.gl, torusData.geometry.iboSource.value),
-      vboMap: new Map(),
-      vertexCount: torusData.geometry.attributes.get("position")!.
-        value.length / torusData.geometry.attributes.get("position")!.stride,
-      drawMode: this.gl.TRIANGLES,
-    };
+    const torus: GpuMesh = this.createGpuMesh(torusData);
 
     const sphereData = mesh.getSphere(64, 64, 2.0, [0.25, 0.25, 0.75, 1.0]);
 
-    const sphere: GpuMesh = {
-      ...sphereData,
-      ibo: createIbo(this.gl, sphereData.geometry.iboSource.value),
-      vboMap: new Map(),
-      vertexCount: sphereData.geometry.attributes.get("position")!.
-        value.length / sphereData.geometry.attributes.get("position")!.stride,
-      drawMode: this.gl.TRIANGLES,
-    };
+    const sphere: GpuMesh = this.createGpuMesh(sphereData);
 
     //VBOの初期化
     const meshes = [torus, sphere];
@@ -154,6 +140,19 @@ void main(void){
     this.gl.depthFunc(this.gl.LEQUAL);
 
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, torus.ibo!);
+  }
+
+  private createGpuMesh(
+    mesh: mesh.Mesh
+  ): GpuMesh {
+    return {
+      ...mesh,
+      ibo: createIbo(this.gl, mesh.geometry.iboSource.value),
+      vboMap: new Map(),
+      vertexCount: mesh.geometry.attributes.get("position")!.
+        value.length / mesh.geometry.attributes.get("position")!.stride,
+      drawMode: this.gl.TRIANGLES,
+    }
   }
 
   private drawObject(
