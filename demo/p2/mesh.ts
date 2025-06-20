@@ -17,6 +17,7 @@ export type Mesh = {
   drawMode?: number;
 
   type: "Mesh";
+  id: symbol;
 };
 
 const initMesh = (data: { p: number[], n: number[], c: number[], i: number[] }): Mesh => {
@@ -34,6 +35,7 @@ const initMesh = (data: { p: number[], n: number[], c: number[], i: number[] }):
     },
     vboMap: new Map(),
     type: "Mesh",
+    id: Symbol("Mesh"),
   }
 }
 
@@ -169,7 +171,7 @@ export const getSphere = (
   }
   return initMesh({ p: pos, n: nor, c: col, i: idx });
 };
-
+/*
 const getTetragon = (): Mesh => {
 
-}
+}*/

@@ -6,7 +6,12 @@ import * as scene from "./scene";
 import { loadImageBitmap } from "./common/loadImageBitmap"
 
 // object3dに近い
-type RenderableObject = {
+export type RenderableObject = {
+  mesh: mesh.Mesh;
+  modelMatrix: mat4.Mat4;
+}
+
+type RenderObject = {
   mesh: GpuMesh;
   modelMatrix: mat4.Mat4;
 }
@@ -36,10 +41,32 @@ const main = () => {
   loadImageBitmap("./resource/demo.png").then(() => {
     console.log("loading succeed!");
   });
+
+
+  // 各種行列の生成と初期化
+  const scene: scene.Scene = {
+    children: new Set<RenderableObject>(),
+    type: "Scene",
+  };
+
+  const control = [
+    {
+      mesh: mesh.getTorus(64, 64, 0.5, 1.5, [0.75, 0.25, 0.25, 1.0]),
+      modelMatrix: mat4.getIdentity(),
+    },
+    {
+      mesh: mesh.getSphere(64, 64, 2.0, [0.25, 0.25, 0.75, 1.0]),
+      modelMatrix: mat4.getIdentity(),
+    }
+  ]
+  for (const obj of control) {
+    scene.children.add(obj);
+  }
+
   const renderer = new Renderer(c);
 
   requestAnimationFrame(() => {
-    frame(0, renderer);
+    frame(control, scene, 0, renderer);
   });
 };
 
@@ -52,7 +79,8 @@ class Renderer {
   private readonly gl: WebGLRenderingContext;
   private readonly program: WebGLProgram;
 
-  private readonly meshes: Array<GpuMesh> = [];
+  // ECMA 2023が必要
+  private readonly meshes: Map<symbol, GpuMesh> = new Map();
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -118,31 +146,12 @@ void main(void){
     this.program = createProgram(this.gl, v_shader, f_shader);
 
     // トーラスの頂点データを生成
-    const torusData = mesh.getTorus(64, 64, 0.5, 1.5, [0.75, 0.25, 0.25, 1.0]);
-
-    const torus: GpuMesh = this.createGpuMesh(torusData);
-
-    const sphereData = mesh.getSphere(64, 64, 2.0, [0.25, 0.25, 0.75, 1.0]);
-
-    const sphere: GpuMesh = this.createGpuMesh(sphereData);
-
-    //VBOの初期化
-    const meshes = [torus, sphere];
-    for (const mesh of meshes) {
-      for (const key of mesh.geometry.attributes.keys()) {
-        mesh.vboMap.set(
-          key,
-          createVbo(this.gl, mesh.geometry.attributes.get(key)!.value),
-        );
-      }
-    }
-    this.meshes = meshes;
 
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
 
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, torus.ibo!);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
   }
 
   private createGpuMesh(
@@ -160,7 +169,7 @@ void main(void){
   }
 
   private drawObject(
-    RenderableObject: RenderableObject,
+    RenderableObject: RenderObject,
     vpMatrix: mat4.Mat4,
     uniLocation: WebGLUniformLocation[],
     lightPosition: number[],
@@ -204,21 +213,37 @@ void main(void){
     );
   }
 
-  rendering(frameCount: number) {
+  rendering(scene: scene.Scene) {
+
+    const vboUninitialized: Array<GpuMesh> = [];
+
+    // バッファが未登録のものは新規でVBOを生成する
+    for (const obj of scene.children) {
+      let gpuMesh: GpuMesh | undefined = this.meshes.get(obj.mesh.id);
+      if (gpuMesh != null) {
+        continue;
+      }
+      gpuMesh = this.createGpuMesh(obj.mesh);
+      vboUninitialized.push(gpuMesh);
+      this.meshes.set(obj.mesh.id, gpuMesh);
+    }
+    // VBOの初期化
+    for (const mesh of vboUninitialized) {
+      for (const key of mesh.geometry.attributes.keys()) {
+        mesh.vboMap.set(
+          key,
+          createVbo(this.gl, mesh.geometry.attributes.get(key)!.value),
+        );
+      }
+    }
+
+    // かなり強引なので、後で修正する
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.meshes.get(scene.children.values().next()!.value!.mesh.id)!.ibo);
+
     // init
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.clearDepth(1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
-    const rad = ((frameCount % 360) * Math.PI) / 180;
-    const tx = Math.cos(rad) * 3.5;
-    const ty = Math.sin(rad) * 3.5;
-    const tz = Math.sin(rad) * 3.5;
-
-    // 各種行列の生成と初期化
-    const identity = mat4.getIdentity();
-
-    let mMatrix = identity;
 
     const vMatrix = mat4.getLookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
     const pMatrix = mat4.getPerspective(
@@ -232,8 +257,6 @@ void main(void){
     const eyeDirection = [0.0, 0.0, 20.0];
     const ambientColor = [0.1, 0.1, 0.1, 1.0];
 
-    mMatrix = mat4.multiply(mMatrix, mat4.getTranslation(1.5, 0.0, 0.0));
-
     const vpMatrix = mat4.multiply(pMatrix, vMatrix);
 
     // uniformLocationの取得
@@ -245,31 +268,13 @@ void main(void){
     uniLocation[4] = this.gl.getUniformLocation(this.program, "eyeDirection")!;
     uniLocation[5] = this.gl.getUniformLocation(this.program, "ambientColor")!;
 
-    // モデル座標変換行列の生成
-    mMatrix = mat4.multiply(
-      mat4.getIdentity(),
-      mat4.getTranslation(tx, -ty, -tz),
-    );
-    const orb: RenderableObject = {
-      mesh: this.meshes[1],
-      modelMatrix: mMatrix
+    for (const obj of scene.children) {
+      const renderObject: RenderObject = {
+        mesh: this.meshes.get(obj.mesh.id)!,
+        modelMatrix: obj.modelMatrix,
+      };
+      this.drawObject(renderObject, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
     }
-
-    this.drawObject(orb, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
-    // モデル座標変換行列の生成
-    mMatrix = mat4.multiply(
-      mat4.getIdentity(),
-      mat4.getTranslation(-tx, ty, tz),
-    );
-    mMatrix = mat4.multiply(mMatrix, mat4.getRotateY(-rad));
-    mMatrix = mat4.multiply(mMatrix, mat4.getRotateZ(-rad));
-
-    const torus: RenderableObject = {
-      mesh: this.meshes[0],
-      modelMatrix: mMatrix
-    }
-
-    this.drawObject(torus, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
 
     const error = this.gl.getError();
     if (error !== this.gl.NO_ERROR) {
@@ -284,11 +289,30 @@ void main(void){
 /**
  * メインループ。
  */
-const frame = (frameCount: number, renderer: Renderer) => {
-  renderer.rendering(frameCount);
+const frame = (objectControl: RenderableObject[], scene: scene.Scene, frameCount: number, renderer: Renderer) => {
+
+  const rad = ((frameCount % 360) * Math.PI) / 180;
+  const tx = Math.cos(rad) * 3.5;
+  const ty = Math.sin(rad) * 3.5;
+  const tz = Math.sin(rad) * 3.5;
+
+  objectControl[1].modelMatrix = mat4.multiply(
+    mat4.getIdentity(),
+    mat4.getTranslation(tx, -ty, -tz),
+  );
+
+  objectControl[0].modelMatrix = [
+    mat4.getIdentity(),
+    mat4.getTranslation(-tx, ty, tz),
+    mat4.getRotateY(-rad),
+    mat4.getRotateZ(-rad)
+  ].reduce((a, b) => {
+    return mat4.multiply(a, b);
+  });
+  renderer.rendering(scene);
 
   requestAnimationFrame(() => {
-    frame(++frameCount, renderer);
+    frame(objectControl, scene, ++frameCount, renderer);
   });
 };
 
