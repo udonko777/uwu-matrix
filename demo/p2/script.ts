@@ -1,6 +1,8 @@
 import * as mat4 from "@/mat4";
 import * as mesh from "./mesh";
 
+import * as scene from "./scene";
+
 import { loadImageBitmap } from "./common/loadImageBitmap"
 
 // object3dに近い
@@ -9,11 +11,12 @@ type RenderableObject = {
   modelMatrix: mat4.Mat4;
 }
 
-type GpuMesh = mesh.Mesh & {
+type GpuMesh = Omit<mesh.Mesh, "type"> & {
   ibo: WebGLBuffer;
   vboMap: Map<string, WebGLBuffer>;
   vertexCount: number;
   drawMode: number;
+  type: "GpuMesh";
 };
 
 window.addEventListener("load", () => {
@@ -152,6 +155,7 @@ void main(void){
       vertexCount: mesh.geometry.attributes.get("position")!.
         value.length / mesh.geometry.attributes.get("position")!.stride,
       drawMode: this.gl.TRIANGLES,
+      type: "GpuMesh",
     }
   }
 

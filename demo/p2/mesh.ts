@@ -15,6 +15,8 @@ export type Mesh = {
   vertexCount?: number;
 
   drawMode?: number;
+
+  type: "Mesh";
 };
 
 const initMesh = (data: { p: number[], n: number[], c: number[], i: number[] }): Mesh => {
@@ -31,6 +33,7 @@ const initMesh = (data: { p: number[], n: number[], c: number[], i: number[] }):
       map: null,
     },
     vboMap: new Map(),
+    type: "Mesh",
   }
 }
 
