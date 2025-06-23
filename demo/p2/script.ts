@@ -10,7 +10,7 @@ export type RenderableObject = {
   mesh: mesh.Mesh;
   modelMatrix: mat4.Mat4;
 }
-
+// GPUにバインド済みのRenderableObject
 type RenderObject = {
   mesh: GpuMesh;
   modelMatrix: mat4.Mat4;
@@ -71,6 +71,37 @@ const main = () => {
 };
 
 /**
+ * メインループ。
+ */
+const frame = (objectControl: RenderableObject[], scene: scene.Scene, frameCount: number, renderer: Renderer) => {
+
+  const rad = ((frameCount % 360) * Math.PI) / 180;
+  const tx = Math.cos(rad) * 3.5;
+  const ty = Math.sin(rad) * 3.5;
+  const tz = Math.sin(rad) * 3.5;
+
+  objectControl[1].modelMatrix = mat4.multiply(
+    mat4.getIdentity(),
+    mat4.getTranslation(tx, -ty, -tz),
+  );
+
+  objectControl[0].modelMatrix = [
+    mat4.getIdentity(),
+    mat4.getTranslation(-tx, ty, tz),
+    mat4.getRotateY(-rad),
+    mat4.getRotateZ(-rad)
+  ].reduce((a, b) => {
+    return mat4.multiply(a, b);
+  });
+  renderer.rendering(scene);
+
+  requestAnimationFrame(() => {
+    frame(objectControl, scene, ++frameCount, renderer);
+  });
+};
+
+
+/**
  * Rendererと呼ぶには余りにも沢山の関心を持っているが、現状のまま動作させることを優先した
  */
 class Renderer {
@@ -80,7 +111,7 @@ class Renderer {
   private readonly program: WebGLProgram;
 
   // ECMA 2023が必要
-  private readonly meshes: Map<symbol, GpuMesh> = new Map();
+  private readonly meshes: WeakMap<symbol, GpuMesh> | Map<symbol, GpuMesh> = new Map();
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -144,8 +175,6 @@ void main(void){
 
     // プログラムオブジェクトの生成とリンク
     this.program = createProgram(this.gl, v_shader, f_shader);
-
-    // トーラスの頂点データを生成
 
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.enable(this.gl.DEPTH_TEST);
@@ -219,7 +248,7 @@ void main(void){
 
     // バッファが未登録のものは新規でVBOを生成する
     for (const obj of scene.children) {
-      let gpuMesh: GpuMesh | undefined = this.meshes.get(obj.mesh.id);
+      let gpuMesh = this.meshes.get(obj.mesh.id);
       if (gpuMesh != null) {
         continue;
       }
@@ -236,9 +265,6 @@ void main(void){
         );
       }
     }
-
-    // かなり強引なので、後で修正する
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.meshes.get(scene.children.values().next()!.value!.mesh.id)!.ibo);
 
     // init
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -285,36 +311,6 @@ void main(void){
     this.gl.flush();
   }
 }
-
-/**
- * メインループ。
- */
-const frame = (objectControl: RenderableObject[], scene: scene.Scene, frameCount: number, renderer: Renderer) => {
-
-  const rad = ((frameCount % 360) * Math.PI) / 180;
-  const tx = Math.cos(rad) * 3.5;
-  const ty = Math.sin(rad) * 3.5;
-  const tz = Math.sin(rad) * 3.5;
-
-  objectControl[1].modelMatrix = mat4.multiply(
-    mat4.getIdentity(),
-    mat4.getTranslation(tx, -ty, -tz),
-  );
-
-  objectControl[0].modelMatrix = [
-    mat4.getIdentity(),
-    mat4.getTranslation(-tx, ty, tz),
-    mat4.getRotateY(-rad),
-    mat4.getRotateZ(-rad)
-  ].reduce((a, b) => {
-    return mat4.multiply(a, b);
-  });
-  renderer.rendering(scene);
-
-  requestAnimationFrame(() => {
-    frame(objectControl, scene, ++frameCount, renderer);
-  });
-};
 
 /**
  * ソースをコンパイルしてシェーダを生成
