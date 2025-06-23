@@ -171,7 +171,40 @@ export const getSphere = (
   }
   return initMesh({ p: pos, n: nor, c: col, i: idx });
 };
-/*
-const getTetragon = (): Mesh => {
 
-}*/
+export const getTetragon = (): Mesh => {
+  return {
+    geometry: {
+      attributes: new Map([
+        ["position", attribute.init([
+          -1.0, 1.0, 0.0,
+          1.0, 1.0, 0.0,
+          -1.0, -1.0, 0.0,
+          1.0, -1.0, 0.0
+        ], 3)],
+        ["color", attribute.init([
+          1.0, 1.0, 1.0, 1.0,
+          1.0, 1.0, 1.0, 1.0,
+          1.0, 1.0, 1.0, 1.0,
+          1.0, 1.0, 1.0, 1.0
+        ], 4)],
+        ["textureCoord", attribute.init([
+          0.0, 0.0,
+          1.0, 0.0,
+          0.0, 1.0,
+          1.0, 1.0
+        ], 2)],
+      ]),
+      iboSource: attribute.init([
+        0, 1, 2,
+        3, 2, 1
+      ], 6),
+    },
+    material: {
+      map: null,
+    },
+    vboMap: new Map(),
+    type: "Mesh",
+    id: Symbol("Mesh"),
+  }
+}

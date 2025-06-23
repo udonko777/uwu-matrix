@@ -38,10 +38,6 @@ const getCanvas = (): HTMLCanvasElement => {
 
 const main = () => {
   const c = getCanvas();
-  loadImageBitmap("./resource/demo.png").then(() => {
-    console.log("loading succeed!");
-  });
-
 
   // 各種行列の生成と初期化
   const scene: scene.Scene = {
@@ -51,23 +47,25 @@ const main = () => {
 
   const control = [
     {
-      mesh: mesh.getTorus(64, 64, 0.5, 1.5, [0.75, 0.25, 0.25, 1.0]),
-      modelMatrix: mat4.getIdentity(),
-    },
-    {
-      mesh: mesh.getSphere(64, 64, 2.0, [0.25, 0.25, 0.75, 1.0]),
+      mesh: mesh.getTetragon(),
       modelMatrix: mat4.getIdentity(),
     }
   ]
-  for (const obj of control) {
-    scene.children.add(obj);
-  }
 
   const renderer = new Renderer(c);
+  loadImageBitmap("./resource/demo.png")
+    .then((image) => {
+      control[0].mesh.material.map = { image };
+    })
+    .then(() => {
+      for (const obj of control) {
+        scene.children.add(obj);
+      }
+      requestAnimationFrame(() => {
+        frame(control, scene, 0, renderer);
+      });
+    })
 
-  requestAnimationFrame(() => {
-    frame(control, scene, 0, renderer);
-  });
 };
 
 /**
@@ -76,20 +74,10 @@ const main = () => {
 const frame = (objectControl: RenderableObject[], scene: scene.Scene, frameCount: number, renderer: Renderer) => {
 
   const rad = ((frameCount % 360) * Math.PI) / 180;
-  const tx = Math.cos(rad) * 3.5;
-  const ty = Math.sin(rad) * 3.5;
-  const tz = Math.sin(rad) * 3.5;
-
-  objectControl[1].modelMatrix = mat4.multiply(
-    mat4.getIdentity(),
-    mat4.getTranslation(tx, -ty, -tz),
-  );
 
   objectControl[0].modelMatrix = [
     mat4.getIdentity(),
-    mat4.getTranslation(-tx, ty, tz),
     mat4.getRotateY(-rad),
-    mat4.getRotateZ(-rad)
   ].reduce((a, b) => {
     return mat4.multiply(a, b);
   });
@@ -99,7 +87,6 @@ const frame = (objectControl: RenderableObject[], scene: scene.Scene, frameCount
     frame(objectControl, scene, ++frameCount, renderer);
   });
 };
-
 
 /**
  * Rendererと呼ぶには余りにも沢山の関心を持っているが、現状のまま動作させることを優先した
@@ -123,42 +110,29 @@ class Renderer {
 
     const vertexShaderSource = `
 attribute vec3 position;
-attribute vec3 normal;
 attribute vec4 color;
+attribute vec2 textureCoord;
 uniform   mat4 mvpMatrix;
-uniform   mat4 mMatrix;
-varying   vec3 vPosition;
-varying   vec3 vNormal;
 varying   vec4 vColor;
+varying   vec2 vTextureCoord;
 
 void main(void){
-    vPosition   = (mMatrix * vec4(position, 1.0)).xyz;
-    vNormal     = normal;
-    vColor      = color;
-    gl_Position = mvpMatrix * vec4(position, 1.0);
+    vColor        = color;
+    vTextureCoord = textureCoord;
+    gl_Position   = mvpMatrix * vec4(position, 1.0);
 }
 `;
 
     const fragmentShaderSource = `
 precision mediump float;
 
-uniform mat4 invMatrix;
-uniform vec3 lightPosition;
-uniform vec3 eyeDirection;
-uniform vec4 ambientColor;
-varying vec3 vPosition;
-varying vec3 vNormal;
-varying vec4 vColor;
+uniform sampler2D texture;
+varying vec4      vColor;
+varying vec2      vTextureCoord;
 
 void main(void){
-    vec3  lightVec  = lightPosition - vPosition;
-    vec3  invLight  = normalize(invMatrix * vec4(lightVec, 0.0)).xyz;
-    vec3  invEye    = normalize(invMatrix * vec4(eyeDirection, 0.0)).xyz;
-    vec3  halfLE    = normalize(invLight + invEye);
-    float diffuse   = clamp(dot(vNormal, invLight), 0.0, 1.0) + 0.2;
-    float specular  = pow(clamp(dot(vNormal, halfLE), 0.0, 1.0), 50.0);
-    vec4  destColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 1.0) + ambientColor;
-    gl_FragColor    = destColor;
+    vec4 smpColor = texture2D(texture, vTextureCoord);
+    gl_FragColor  = vColor * smpColor;
 }
 `;
 
@@ -176,9 +150,9 @@ void main(void){
     // プログラムオブジェクトの生成とリンク
     this.program = createProgram(this.gl, v_shader, f_shader);
 
-    this.gl.enable(this.gl.CULL_FACE);
-    this.gl.enable(this.gl.DEPTH_TEST);
-    this.gl.depthFunc(this.gl.LEQUAL);
+    //this.gl.enable(this.gl.CULL_FACE);
+    //this.gl.enable(this.gl.DEPTH_TEST);
+    //this.gl.depthFunc(this.gl.LEQUAL);
 
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
   }
@@ -201,18 +175,23 @@ void main(void){
     RenderableObject: RenderObject,
     vpMatrix: mat4.Mat4,
     uniLocation: WebGLUniformLocation[],
-    lightPosition: number[],
-    eyeDirection: number[],
-    ambientColor: number[]
   ) {
 
     const mesh = RenderableObject.mesh;
     const mMatrix = RenderableObject.modelMatrix;
 
     const mvpMatrix = mat4.multiply(vpMatrix, mMatrix);
-    const invMatrix = mat4.inverse(mMatrix);
 
     const attributeNames = Array.from(mesh.geometry.attributes.keys());
+
+    if (mesh.material.map != null) {
+      const texture = createTexture(this.gl, mesh.material.map.image);
+      // テクスチャをバインドする
+      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+
+      // uniform変数にテクスチャを登録
+      this.gl.uniform1i(uniLocation[1], 0);
+    }
 
     // attributeLocationを配列に取得
     const attLocation = attributeNames.map(name =>
@@ -228,11 +207,6 @@ void main(void){
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, mesh.ibo);
 
     this.gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix.value);
-    this.gl.uniformMatrix4fv(uniLocation[1], false, mMatrix.value);
-    this.gl.uniformMatrix4fv(uniLocation[2], false, invMatrix.value);
-    this.gl.uniform3fv(uniLocation[3], lightPosition);
-    this.gl.uniform3fv(uniLocation[4], eyeDirection);
-    this.gl.uniform4fv(uniLocation[5], ambientColor);
 
     this.gl.drawElements(
       this.gl.TRIANGLES,
@@ -271,7 +245,7 @@ void main(void){
     this.gl.clearDepth(1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-    const vMatrix = mat4.getLookAt([0.0, 0.0, 20.0], [0, 0, 0], [0, 1, 0]);
+    const vMatrix = mat4.getLookAt([0.0, 2.0, 5.0], [0, 0, 0], [0, 1, 0]);
     const pMatrix = mat4.getPerspective(
       45,
       this.canvas.width / this.canvas.height,
@@ -279,27 +253,19 @@ void main(void){
       100,
     );
 
-    const lightPosition = [0.0, 0.0, 0.0];
-    const eyeDirection = [0.0, 0.0, 20.0];
-    const ambientColor = [0.1, 0.1, 0.1, 1.0];
-
     const vpMatrix = mat4.multiply(pMatrix, vMatrix);
 
     // uniformLocationの取得
     const uniLocation: WebGLUniformLocation[] = [];
     uniLocation[0] = this.gl.getUniformLocation(this.program, "mvpMatrix")!;
-    uniLocation[1] = this.gl.getUniformLocation(this.program, "mMatrix")!;
-    uniLocation[2] = this.gl.getUniformLocation(this.program, "invMatrix")!;
-    uniLocation[3] = this.gl.getUniformLocation(this.program, "lightPosition")!;
-    uniLocation[4] = this.gl.getUniformLocation(this.program, "eyeDirection")!;
-    uniLocation[5] = this.gl.getUniformLocation(this.program, "ambientColor")!;
+    uniLocation[1] = this.gl.getUniformLocation(this.program, 'texture')!;
 
     for (const obj of scene.children) {
       const renderObject: RenderObject = {
         mesh: this.meshes.get(obj.mesh.id)!,
         modelMatrix: obj.modelMatrix,
       };
-      this.drawObject(renderObject, vpMatrix, uniLocation, lightPosition, eyeDirection, ambientColor)
+      this.drawObject(renderObject, vpMatrix, uniLocation)
     }
 
     const error = this.gl.getError();
@@ -426,3 +392,26 @@ function createIbo(
   return ibo;
 }
 
+function createTexture(
+  gl: WebGLRenderingContext,
+  image: ImageBitmap | HTMLImageElement,
+): WebGLTexture {
+  const texture = gl.createTexture();
+  if (!texture) {
+    throw new Error("texture not created");
+  }
+
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    image,
+  );
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+
+  return texture;
+}
