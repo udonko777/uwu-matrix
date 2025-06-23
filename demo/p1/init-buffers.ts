@@ -94,8 +94,7 @@ const initIndexBuffer = (gl: WebGLRenderingContext) => {
   );
 
   return indexBuffer;
-}
-
+};
 
 const initPositionBuffer = (gl: WebGLRenderingContext) => {
   // 正方形の位置を保存するためのバッファー

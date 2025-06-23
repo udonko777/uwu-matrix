@@ -9,7 +9,7 @@ import {
   getIdentity,
   toRowMajorArray,
   toRowMajor2dArray,
-} from "@/f64Mat";
+} from "@/f32Mat";
 import { ValidationError } from "@/errors";
 
 describe("Matrix basics", () => {
@@ -19,7 +19,7 @@ describe("Matrix basics", () => {
       [3, 4],
       [5, 6],
     ]);
-    expect(a.value).toEqual(new Float64Array([1, 3, 5, 2, 4, 6]));
+    expect(a.value).toEqual(new Float32Array([1, 3, 5, 2, 4, 6]));
   });
 
   it("Matrix.valueAt", () => {
@@ -44,7 +44,7 @@ describe("Matrix.add", () => {
       [6, 8],
     ]);
     const result = add(a, b);
-    expect(result.value).toEqual(new Float64Array([6, 8, 10, 12]));
+    expect(result.value).toEqual(new Float32Array([6, 8, 10, 12]));
   });
 
   it("throws error when sizes do not match", () => {
@@ -68,7 +68,7 @@ describe("Matrix.subtract", () => {
       [6, 8],
     ]);
     const result = subtract(a, b);
-    expect(result.value).toEqual(new Float64Array([5, 4, 3, 2]));
+    expect(result.value).toEqual(new Float32Array([5, 4, 3, 2]));
   });
 
   it("throws error when sizes do not match", () => {
@@ -88,7 +88,7 @@ describe("Matrix.multiplyScalar", () => {
       [2, 4],
     ]);
     const result = multiplyScalar(a, 2);
-    expect(result.value).toEqual(new Float64Array([2, 4, 6, 8]));
+    expect(result.value).toEqual(new Float32Array([2, 4, 6, 8]));
   });
 
   it("multiplies a 3x3 matrix by a scalar correctly", () => {
@@ -99,7 +99,7 @@ describe("Matrix.multiplyScalar", () => {
     ]);
     const result = multiplyScalar(a, 3);
     expect(result.value).toEqual(
-      new Float64Array([3, 6, 9, 12, 15, 18, 21, 24, 27]),
+      new Float32Array([3, 6, 9, 12, 15, 18, 21, 24, 27]),
     );
   });
 });
@@ -111,7 +111,7 @@ describe("Matrix.getClone", () => {
       [2, 4],
     ]);
     const clone = getClone(a);
-    expect(clone.value).toEqual(new Float64Array(a.value));
+    expect(clone.value).toEqual(new Float32Array(a.value));
     expect(clone).not.toBe(a);
   });
 
@@ -122,15 +122,15 @@ describe("Matrix.getClone", () => {
     ]);
     const clone = getClone(a);
     const modifiedClone = multiplyScalar(clone, 2);
-    expect(modifiedClone.value).toEqual(new Float64Array([2, 4, 6, 8]));
-    expect(a.value).toEqual(new Float64Array([1, 2, 3, 4]));
+    expect(modifiedClone.value).toEqual(new Float32Array([2, 4, 6, 8]));
+    expect(a.value).toEqual(new Float32Array([1, 2, 3, 4]));
   });
 });
 
 describe("Matrix.getIdentity", () => {
   it("generates a 2x2 identity matrix", () => {
     const identity = getIdentity(2);
-    expect(identity.value).toEqual(new Float64Array([1, 0, 0, 1]));
+    expect(identity.value).toEqual(new Float32Array([1, 0, 0, 1]));
     expect(identity.rowCount).toBe(2);
     expect(identity.colCount).toBe(2);
   });
@@ -138,7 +138,7 @@ describe("Matrix.getIdentity", () => {
   it("generates a 3x3 identity matrix", () => {
     const identity = getIdentity(3);
     expect(identity.value).toEqual(
-      new Float64Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+      new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
     );
     expect(identity.rowCount).toBe(3);
     expect(identity.colCount).toBe(3);
@@ -147,7 +147,7 @@ describe("Matrix.getIdentity", () => {
   it("generates a 4x4 identity matrix", () => {
     const identity = getIdentity(4);
     expect(identity.value).toEqual(
-      new Float64Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+      new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
     );
     expect(identity.rowCount).toBe(4);
     expect(identity.colCount).toBe(4);
@@ -169,7 +169,7 @@ describe("Matrix.fromRowMajor", () => {
       [3, 4],
     ];
     const matrix = fromRowMajor(rowMajor);
-    expect(matrix.value).toEqual(new Float64Array([1, 3, 2, 4]));
+    expect(matrix.value).toEqual(new Float32Array([1, 3, 2, 4]));
     expect(matrix.rowCount).toBe(2);
     expect(matrix.colCount).toBe(2);
   });
@@ -181,7 +181,7 @@ describe("Matrix.fromRowMajor", () => {
       [7, 8, 9],
     ];
     const matrix = fromRowMajor(rowMajor);
-    expect(matrix.value).toEqual(new Float64Array([1, 4, 7, 2, 5, 8, 3, 6, 9]));
+    expect(matrix.value).toEqual(new Float32Array([1, 4, 7, 2, 5, 8, 3, 6, 9]));
     expect(matrix.rowCount).toBe(3);
     expect(matrix.colCount).toBe(3);
   });

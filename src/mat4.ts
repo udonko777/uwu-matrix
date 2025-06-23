@@ -1,7 +1,8 @@
 import { is2dNumberArray } from "@/common";
-import * as fMat from "./matrix";
+import * as fMat from "./f32Mat";
+import { ValidationError } from "./errors";
 
-export type mat4 = fMat.f64Mat<4, 4>;
+export type Mat4 = fMat.F32Mat<4, 4>;
 
 /*
 // TODO
@@ -18,18 +19,27 @@ export const fromColumnMajor = (
 /**
  * 行優先配列から、列優先行列である`f64Mat`のインスタンスを得る
  */
-export const fromRowMajor = (rowMajor: number[][]): mat4 => {
+export const fromRowMajor = (rowMajor: number[][]): Mat4 => {
   if (!is2dNumberArray(rowMajor)) {
-    throw new Error("Input must be a 2D array");
+    throw new ValidationError(
+      "Invalid matrix format: The input must be a 2D array where all elements are numbers.",
+      { cause: { reason: "not2dNumberArray", value: rowMajor } },
+    );
   }
   if (!rowMajor.every(row => row.length === rowMajor[0].length)) {
-    throw new Error("All rows must have the same number of columns");
+    throw new ValidationError(
+      "All rows must have the same number of columns",
+      { cause: { reason: "columnsHaveDifferentRowCounts", value: rowMajor }, }
+    );
   }
   const rowCount = rowMajor.length;
   const colCount = rowMajor[0].length;
 
   if (rowCount !== 4 || colCount !== 4) {
-    throw new Error("Input must be a 4x4 matrix");
+    throw new ValidationError(
+      "Input must be a 4x4 matrix",
+      { cause: { reason: "sizeMismatch", value: rowMajor } }
+    );
   }
   const value = new Float64Array(rowCount * colCount);
 
@@ -41,12 +51,12 @@ export const fromRowMajor = (rowMajor: number[][]): mat4 => {
   return fMat.init(value, 4, 4);
 };
 
-export const getClone = (matrix: mat4): mat4 => {
-  return { ...matrix, value: Float64Array.from(matrix.value) };
+export const getClone = (matrix: Mat4): Mat4 => {
+  return { ...matrix, value: Float32Array.from(matrix.value) };
 };
 
-export const getIdentity = (): mat4 => {
-  const value = new Float64Array(16);
+export const getIdentity = (): Mat4 => {
+  const value = new Float32Array(16);
   value[0] = 1;
   value[5] = 1;
   value[10] = 1;
@@ -54,7 +64,7 @@ export const getIdentity = (): mat4 => {
   return fMat.init(value, 4, 4);
 };
 
-export const toRowMajorArray = (matrix: mat4): number[] => {
+export const toRowMajorArray = (matrix: Mat4): number[] => {
   const result = new Array(16).fill(0);
 
   for (let row = 0; row < matrix.rowCount; row++) {
@@ -65,7 +75,7 @@ export const toRowMajorArray = (matrix: mat4): number[] => {
   return result;
 };
 
-export const toRowMajor2dArray = (matrix: mat4): number[][] => {
+export const toRowMajor2dArray = (matrix: Mat4): number[][] => {
   const v = matrix.value;
   const result: number[][] = [
     [v[0], v[4], v[8], v[12]],
@@ -77,14 +87,14 @@ export const toRowMajor2dArray = (matrix: mat4): number[][] => {
 };
 
 export const valueAt = (
-  matrix: mat4,
+  matrix: Mat4,
   rowIndex: number,
   columnIndex: number,
 ): number => {
   return fMat.valueAt(matrix, rowIndex, columnIndex);
 };
 
-export const add = (a: mat4, b: mat4): mat4 => {
+export const add = (a: Mat4, b: Mat4): Mat4 => {
   const x = a.value;
   const y = b.value;
   return fMat.init(
@@ -111,7 +121,7 @@ export const add = (a: mat4, b: mat4): mat4 => {
   );
 };
 
-export const subtract = (a: mat4, b: mat4): mat4 => {
+export const subtract = (a: Mat4, b: Mat4): Mat4 => {
   const x = a.value;
   const y = b.value;
   return fMat.init(
@@ -138,7 +148,7 @@ export const subtract = (a: mat4, b: mat4): mat4 => {
   );
 };
 
-export const multiplyScalar = (matrix: mat4, scalar: number): mat4 => {
+export const multiplyScalar = (matrix: Mat4, scalar: number): Mat4 => {
   const x = matrix.value;
   return fMat.init(
     [
@@ -164,7 +174,7 @@ export const multiplyScalar = (matrix: mat4, scalar: number): mat4 => {
   );
 };
 
-export const multiply = (a: mat4, b: mat4): mat4 => {
+export const multiply = (a: Mat4, b: Mat4): Mat4 => {
   const x = a.value;
   const y = b.value;
   const result = new Float64Array(16);
@@ -183,14 +193,14 @@ export const multiply = (a: mat4, b: mat4): mat4 => {
 };
 
 export const equals = (
-  a: mat4,
-  b: mat4,
+  a: Mat4,
+  b: Mat4,
   precisionExponent = Infinity,
 ): boolean => {
   return fMat.equals(a, b, precisionExponent);
 };
 
-export const sameSize = (a: mat4, b: mat4): boolean => {
+export const sameSize = (a: Mat4, b: Mat4): boolean => {
   return fMat.sameSize(a, b);
 };
 
@@ -198,7 +208,7 @@ export const sameSize = (a: mat4, b: mat4): boolean => {
  * 逆行列を返す。 FIX ME
  * @param matrix
  */
-export const inverse = (matrix: mat4): mat4 => {
+export const inverse = (matrix: Mat4): Mat4 => {
   // FIX ME 一応動作するが、明らかに最適化可能
   return fMat.inverse(matrix);
 };
@@ -209,60 +219,41 @@ export const inverse = (matrix: mat4): mat4 => {
 export const determinant = (matrix: mat4): number => {
 }; */
 
-export const toString = (matrix: mat4): string => {
+export const toString = (matrix: Mat4): string => {
   return toRowMajor2dArray(matrix)
     .map(row => row.map(n => n.toFixed(3)).join("\t"))
     .join("\n");
 };
 
 // 平行移動行列 (4x4)
-export const getTranslation = (x: number, y: number, z: number): mat4 => {
+export const getTranslation = (x: number, y: number, z: number): Mat4 => {
+  return fMat.init([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1], 4, 4);
+};
+
+// X軸回転行列 (4x4)
+export const getRotateX = (rad: number): Mat4 => {
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
   return fMat.init(
-    [
-      1, 0, 0, 0,
-      0, 1, 0, 0,
-      0, 0, 1, 0,
-      x, y, z, 1,
-    ],
+    [1, 0, 0, 0, 0, cos, -sin, 0, 0, sin, cos, 0, 0, 0, 0, 1],
     4,
     4,
   );
 };
 
-// X軸回転行列 (4x4)
-export const getRotateX = (rad: number): mat4 => {
-  const cos = Math.cos(rad);
-  const sin = Math.sin(rad);
-  return fMat.init(
-    [
-      1, 0, 0, 0,
-      0, cos, -sin, 0,
-      0, sin, cos, 0,
-      0, 0, 0, 1,
-    ],
-    4,
-    4,
-  );
-}
-
 // Y軸回転行列 (4x4)
-export const getRotateY = (rad: number): mat4 => {
+export const getRotateY = (rad: number): Mat4 => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   return fMat.init(
-    [
-      cos, 0, sin, 0,
-      0, 1, 0, 0,
-      -sin, 0, cos, 0,
-      0, 0, 0, 1,
-    ],
+    [cos, 0, sin, 0, 0, 1, 0, 0, -sin, 0, cos, 0, 0, 0, 0, 1],
     4,
     4,
   );
-}
+};
 
 // Z軸回転行列 (4x4)
-export const getRotateZ = (rad: number): mat4 => {
+export const getRotateZ = (rad: number): Mat4 => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   return fromRowMajor([
@@ -273,7 +264,10 @@ export const getRotateZ = (rad: number): mat4 => {
   ]);
 };
 
-export const getRotate = (rad: number, axis: [number, number, number]): mat4 => {
+export const getRotate = (
+  rad: number,
+  axis: [number, number, number],
+): Mat4 => {
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   const x = axis[0];
@@ -306,40 +300,26 @@ export const getRotate = (rad: number, axis: [number, number, number]): mat4 => 
     4,
     4,
   );
-}
+};
 
-export const getScale =
-  (x: number, y: number, z: number): mat4 => {
-    return fMat.init(
-      [
-        x, 0, 0, 0,
-        0, y, 0, 0,
-        0, 0, z, 0,
-        0, 0, 0, 1,
-      ],
-      4,
-      4,
-    );
-  };
+export const getScale = (x: number, y: number, z: number): Mat4 => {
+  return fMat.init([x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1], 4, 4);
+};
 
 /**
  * 視点変換行列を作成する。 \
  * upがzと平行であるか、ゼロベクトルだとxがNaNになる
- * @param eye 
- * @param target 
- * @param up 
- * @returns 
+ * @param eye
+ * @param target
+ * @param up
+ * @returns
  */
 export const getLookAt = (
   eye: [number, number, number],
   target: [number, number, number],
   up: [number, number, number],
-): mat4 => {
-  const z = [
-    eye[0] - target[0],
-    eye[1] - target[1],
-    eye[2] - target[2],
-  ];
+): Mat4 => {
+  const z = [eye[0] - target[0], eye[1] - target[1], eye[2] - target[2]];
   const zLen = Math.sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2]);
   z[0] /= zLen;
   z[1] /= zLen;
@@ -384,7 +364,7 @@ export const getLookAt = (
     4,
     4,
   );
-}
+};
 
 /**
  * 透視射影行列を生成する
@@ -398,7 +378,7 @@ export const getPerspective = (
   aspect: number,
   near: number,
   far: number,
-): mat4 => {
+): Mat4 => {
   const f = 1.0 / Math.tan(fovY / 2);
   const nf = 1 / (near - far);
 

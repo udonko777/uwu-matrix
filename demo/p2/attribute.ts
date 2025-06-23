@@ -5,8 +5,8 @@ export type Attribute = {
   stride: number;
   //type: number;
   //normalized: boolean;
-}
+};
 
 export const init = (value: ArrayLike<number>, stride: number): Attribute => {
-  return { value, stride }
-}
+  return { value, stride };
+};

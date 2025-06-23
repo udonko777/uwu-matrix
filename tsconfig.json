@@ -2,20 +2,13 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@@/*": [
-        "./*"
-      ]
+      "@/*": ["./src/*"],
+      "@@/*": ["./*"]
     },
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
+    "lib": ["ESNext", "DOM"],
     "moduleResolution": "Node",
     "strict": true,
     "sourceMap": true,
@@ -29,14 +22,6 @@
     "types": [],
     "declaration": true
   },
-  "include": [
-    "src",
-    "test",
-    "vitest.d.ts",
-    "demo/*/*.ts",
-  ],
-  "exclude": [
-    "node_modules",
-    ".history/**"
-  ]
+  "include": ["src", "test", "vitest.d.ts", "demo/*/*.ts"],
+  "exclude": ["node_modules", ".history/**"]
 }

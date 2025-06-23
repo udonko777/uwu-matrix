@@ -20,7 +20,7 @@ describe("mat4: 4x4 Matrix Tests", () => {
     ];
     const matrix = fromRowMajor(rowMajor);
     expect(matrix.value).toEqual(
-      new Float64Array([1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15, 4, 8, 12, 16]),
+      new Float32Array([1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15, 4, 8, 12, 16]),
     );
   });
 
@@ -49,7 +49,7 @@ describe("mat4: 4x4 Matrix Tests", () => {
     ]);
     const result = add(a, b);
     expect(result.value).toEqual(
-      new Float64Array([
+      new Float32Array([
         17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
       ]),
     );
@@ -71,22 +71,22 @@ describe("mat4: 4x4 Matrix Tests", () => {
   it("generates a 4x4 identity matrix", () => {
     const identity = getIdentity();
     expect(identity.value).toEqual(
-      new Float64Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+      new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
     );
   });
 
   it("creates a translation matrix", () => {
     const translation = getTranslation(1, 2, 3);
     expect(translation.value).toEqual(
-      new Float64Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 2, 3, 1]),
+      new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 2, 3, 1]),
     );
   });
 
   it("creates a Z-axis rotation matrix", () => {
     const rotation = getRotateZ(Math.PI / 2);
     expect(rotation.value).toBeCloseMatrix(
-      new Float64Array([0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
-    1e-16
+      new Float32Array([0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+      1e-16,
     );
   });
 

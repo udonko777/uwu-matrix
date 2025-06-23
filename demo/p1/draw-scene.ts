@@ -1,5 +1,4 @@
-import * as Matrix from "../../src/matrix";
-import * as mat4 from "@/mat4"
+import * as mat4 from "@/mat4";
 import { programInfo } from "./webgl-demo";
 import { buffers } from "./init-buffers";
 
@@ -74,7 +73,7 @@ export const drawScene = (
   // カメラから 0.1 単位から 100 単位までのオブジェクトのみを表示するようにする。
   const zNear = 0.1;
   const zFar = 100.0;
-  let projectionMatrix = Matrix.getIdentity(4);
+  let projectionMatrix = mat4.getIdentity();
   const perspectiveMatrix = mat4.getPerspective(
     fieldOfView,
     aspect,
@@ -83,7 +82,7 @@ export const drawScene = (
   );
 
   // 受け取り先を取る
-  projectionMatrix = Matrix.multiply(projectionMatrix, perspectiveMatrix);
+  projectionMatrix = mat4.multiply(projectionMatrix, perspectiveMatrix);
 
   // 描写位置をシーンの中央である "identity" ポイントにセットする
   let modelViewMatrix = mat4.getIdentity();
@@ -91,7 +90,7 @@ export const drawScene = (
   // そして描写位置を正方形を描写し始めたい位置に少しだけ動かす
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.getTranslation(-0.0, 0.0, -6.0)
+    mat4.getTranslation(-0.0, 0.0, -6.0),
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
@@ -99,12 +98,12 @@ export const drawScene = (
   );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.getRotateY(cubeRotation * 0.7)
-  )
+    mat4.getRotateY(cubeRotation * 0.7),
+  );
   modelViewMatrix = mat4.multiply(
     modelViewMatrix,
-    mat4.getRotateX(cubeRotation * 0.3)
-  )
+    mat4.getRotateX(cubeRotation * 0.3),
+  );
 
   // WebGL にどのように座標バッファーから座標を
   // vertexPosition 属性に引き出すか伝える。
@@ -136,5 +135,4 @@ export const drawScene = (
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
   }
-
 };
