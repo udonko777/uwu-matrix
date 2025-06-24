@@ -53,7 +53,7 @@ const main = () => {
   ]
 
   const renderer = new Renderer(c);
-  loadImageBitmap("./resource/demo.png")
+  loadImageBitmap("demo.png")
     .then((image) => {
       control[0].mesh.material.map = { image };
     })
