@@ -3,7 +3,7 @@ import * as mesh from "./mesh";
 
 import * as scene from "./scene";
 
-import { loadImageBitmap } from "./common/loadImageBitmap"
+import { loadTextureBitmap } from "./common/loadImageBitmap"
 
 // object3dに近い
 export type RenderableObject = {
@@ -53,11 +53,12 @@ const main = () => {
   ]
 
   const renderer = new Renderer(c);
-  loadImageBitmap("demo.png")
-    .then((image) => {
-      control[0].mesh.material.texture = {
-        image: image,
-        map: null,
+  Promise.all(
+    [loadTextureBitmap("demo.png")],
+  )
+    .then((textures) => {
+      for (let i = 0; i < control.length; i++) {
+        control[i].mesh.material.texture = textures[i];
       };
     })
     .then(() => {
