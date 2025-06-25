@@ -55,7 +55,10 @@ const main = () => {
   const renderer = new Renderer(c);
   loadImageBitmap("demo.png")
     .then((image) => {
-      control[0].mesh.material.map = { image };
+      control[0].mesh.material.texture = {
+        image: image,
+        map: null,
+      };
     })
     .then(() => {
       for (const obj of control) {
@@ -184,13 +187,17 @@ void main(void){
 
     const attributeNames = Array.from(mesh.geometry.attributes.keys());
 
-    if (mesh.material.map != null) {
-      const texture = createTexture(this.gl, mesh.material.map.image);
-      // テクスチャをバインドする
-      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    if (mesh.material.texture) {
+      if (mesh.material.texture.map == null) {
+        console.debug("texture already created");
+        const texture = createTexture(this.gl, mesh.material.texture.image);
+        mesh.material.texture.map = texture;
+        // テクスチャをバインドする
+        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 
-      // uniform変数にテクスチャを登録
-      this.gl.uniform1i(uniLocation[1], 0);
+        // uniform変数にテクスチャを登録
+        this.gl.uniform1i(uniLocation[1], 0);
+      }
     }
 
     // attributeLocationを配列に取得

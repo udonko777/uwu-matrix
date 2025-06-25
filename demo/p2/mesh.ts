@@ -31,7 +31,7 @@ const initMesh = (data: { p: number[], n: number[], c: number[], i: number[] }):
       iboSource: attribute.init(data.i, data.i.length),
     },
     material: {
-      map: null,
+      texture: null,
     },
     vboMap: new Map(),
     type: "Mesh",
@@ -201,7 +201,7 @@ export const getTetragon = (): Mesh => {
       ], 6),
     },
     material: {
-      map: null,
+      texture: null,
     },
     vboMap: new Map(),
     type: "Mesh",
