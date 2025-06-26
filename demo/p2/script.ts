@@ -54,12 +54,13 @@ const main = () => {
 
   const renderer = new Renderer(c);
   Promise.all(
-    [loadTextureBitmap("demo.png")],
+    [
+      loadTextureBitmap("demo.png"),
+      loadTextureBitmap("demo2.png"),
+    ],
   )
     .then((textures) => {
-      for (let i = 0; i < control.length; i++) {
-        control[i].mesh.material.texture = textures[i];
-      };
+      control[0].mesh.material.textures = textures;
     })
     .then(() => {
       for (const obj of control) {
@@ -130,13 +131,15 @@ void main(void){
     const fragmentShaderSource = `
 precision mediump float;
 
-uniform sampler2D texture;
+uniform sampler2D texture0;
+uniform sampler2D texture1;
 varying vec4      vColor;
 varying vec2      vTextureCoord;
 
 void main(void){
-    vec4 smpColor = texture2D(texture, vTextureCoord);
-    gl_FragColor  = vColor * smpColor;
+    vec4 smpColor0 = texture2D(texture0, vTextureCoord);
+    vec4 smpColor1 = texture2D(texture1, vTextureCoord);
+    gl_FragColor   = vColor * smpColor0 * smpColor1;
 }
 `;
 
@@ -188,16 +191,19 @@ void main(void){
 
     const attributeNames = Array.from(mesh.geometry.attributes.keys());
 
-    if (mesh.material.texture) {
-      if (mesh.material.texture.map == null) {
-        console.debug("texture already created");
-        const texture = createTexture(this.gl, mesh.material.texture.image);
-        mesh.material.texture.map = texture;
+    if (mesh.material.textures) {
+      for (const [index, texture] of mesh.material.textures.entries()) {
+        if (texture.map == null) {
+          console.debug(`texture not created: ${index}`);
+          const glTexture = createTexture(this.gl, texture.image);
+          texture.map = glTexture;
+        }
+        this.gl.activeTexture(this.gl.TEXTURE0 + index);
         // テクスチャをバインドする
-        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, texture.map);
 
         // uniform変数にテクスチャを登録
-        this.gl.uniform1i(uniLocation[1], 0);
+        this.gl.uniform1i(uniLocation[index + 1], index);
       }
     }
 
@@ -266,7 +272,8 @@ void main(void){
     // uniformLocationの取得
     const uniLocation: WebGLUniformLocation[] = [];
     uniLocation[0] = this.gl.getUniformLocation(this.program, "mvpMatrix")!;
-    uniLocation[1] = this.gl.getUniformLocation(this.program, 'texture')!;
+    uniLocation[1] = this.gl.getUniformLocation(this.program, 'texture0')!;
+    uniLocation[2] = this.gl.getUniformLocation(this.program, 'texture1')!;
 
     for (const obj of scene.children) {
       const renderObject: RenderObject = {
