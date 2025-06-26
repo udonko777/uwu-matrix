@@ -1,24 +1,8 @@
 /// <reference types="vitest" />
 import path from "path";
+import type { BuildOptions } from "vite";
 import { defineConfig } from "vite";
-import packageJson from "./package.json";
 
-const getPackageName = () => packageJson.name;
-
-const getPackageNameCamelCase = () => {
-  try {
-    return getPackageName().replace(/-./g, char => char[1].toUpperCase());
-  } catch {
-    throw new Error("Name property in package.json is missing.");
-  }
-};
-
-const fileName = {
-  es: `${getPackageName()}.js`,
-  iife: `${getPackageName()}.iife.js`,
-};
-
-const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
 const isDemo = process.env.BUILD_DEMO === "true";
 const isProd = process.env.NODE_ENV === "production";
 
@@ -34,7 +18,7 @@ function getRoot() {
   return isDemo ? path.resolve(__dirname, "demo") : undefined;
 }
 
-function getBuildConfig() {
+function getBuildConfig(): BuildOptions {
   if (isDemo) {
     return {
       outDir: "./build/demo",
@@ -55,13 +39,22 @@ function getBuildConfig() {
   }
   return {
     outDir: "./build/dist",
-    lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
-      name: getPackageNameCamelCase(),
-      formats,
-      fileName: format => fileName[format],
+    rollupOptions: {
+      input: {
+        index: path.resolve(__dirname, "src/index.ts"),
+        f64Mat: path.resolve(__dirname, "src/f64Mat.ts"),
+        // 必要に応じて他のモジュールも追加
+      },
+      output: {
+        entryFileNames: "[name].js",
+        format: "es",
+        dir: "./build/dist",
+        preserveModules: true,
+        preserveModulesRoot: "src",
+      },
+      preserveEntrySignatures: "strict",
     },
-  };
+  }
 }
 
 export default defineConfig({
