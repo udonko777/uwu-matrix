@@ -20,13 +20,6 @@ export class ValidationError extends MatrixError {
   }
 }
 
-export class DimensionMismatchError extends MatrixError {
-  constructor(expected: string, got: string, options: ErrorOptions) {
-    super(`Dimension mismatch: expected ${expected}, got ${got}`, options);
-    this.name = "DimensionMismatchError";
-  }
-}
-
 export class SingularMatrixError extends MatrixError {
   constructor(options: ErrorOptions) {
     super("Matrix is singular and cannot be inverted.", options);
