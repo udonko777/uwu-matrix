@@ -43,7 +43,8 @@ function getBuildConfig(): BuildOptions {
       input: {
         index: path.resolve(__dirname, "src/index.ts"),
         f64Mat: path.resolve(__dirname, "src/f64Mat.ts"),
-        // 必要に応じて他のモジュールも追加
+        f32Mat: path.resolve(__dirname, "src/f32Mat.ts"),
+        mat4: path.resolve(__dirname, "src/mat4.ts"),
       },
       output: {
         entryFileNames: "[name].js",

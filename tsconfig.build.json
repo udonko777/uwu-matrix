@@ -7,5 +7,12 @@
     "demo/webgl-demo.ts",
     "vitest.d.ts"
   ],
+  "compilerOptions": {
+    "rootDir": "./src",
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./build/dist/types/",
+  },
   "exclude": ["node_modules", ".history/**", "test"]
 }
