@@ -41,7 +41,7 @@ export const fromRowMajor = (rowMajor: number[][]): Mat4 => {
       { cause: { reason: "sizeMismatch", value: rowMajor } }
     );
   }
-  const value = new Float64Array(rowCount * colCount);
+  const value = new Float32Array(rowCount * colCount);
 
   for (let col = 0; col < colCount; col++) {
     for (let row = 0; row < rowCount; row++) {
@@ -177,7 +177,7 @@ export const multiplyScalar = (matrix: Mat4, scalar: number): Mat4 => {
 export const multiply = (a: Mat4, b: Mat4): Mat4 => {
   const x = a.value;
   const y = b.value;
-  const result = new Float64Array(16);
+  const result = new Float32Array(16);
 
   for (let row = 0; row < 4; row++) {
     for (let col = 0; col < 4; col++) {
